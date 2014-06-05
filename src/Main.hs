@@ -2,7 +2,7 @@
 
 module Main where
 
-import           Calculation.ParSelector
+-- import           Calculation.ParSelector
 import           Calculation.Variables
 
 import           HEP.Data.LHEF.Parser
@@ -18,7 +18,7 @@ parseAndCalc str = case parse parseEvent str of
                      Fail r _ _               -> C.putStr r
                      Done evRemained evParsed ->
                          do let parmap = snd evParsed
-                            print $ eRatioBL (particlesFromTop parmap)
+                            print $ eRatioBLTrue parmap
                             -- print $ particlesFromTop parmap
                             parseAndCalc evRemained
 
