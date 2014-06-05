@@ -18,7 +18,7 @@ parseAndCalc str = case parse parseEvent str of
                      Fail r _ _               -> C.putStr r
                      Done evRemained evParsed ->
                          do let parmap = snd evParsed
-                            print $ eRatioBLTrue parmap
+                            print $ eRatioBLTruePair parmap
                             -- print $ particlesFromTop parmap
                             parseAndCalc evRemained
 

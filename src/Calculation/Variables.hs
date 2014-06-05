@@ -1,4 +1,8 @@
-module Calculation.Variables where
+module Calculation.Variables
+    (
+    -- * Energy ratio of b quark and lepton
+      eRatioBLTruePair
+    ) where
 
 import           HEP.Data.LHEF
 
@@ -8,17 +12,17 @@ import           Control.Monad              (filterM)
 import           Control.Monad.Trans.Class  (lift)
 import           Control.Monad.Trans.Reader (ReaderT (..), ask)
 
-eRatioBLTrue :: ParticleMap -> Double
-eRatioBLTrue pm = case eRatioBL (particlesFromTop pm) of
-                    Nothing    -> 0
-                    Just (r:_) -> r
+eRatioBLTruePair :: ParticleMap -> Double
+eRatioBLTruePair pm = case eRatioBL (particlesFromTop pm) of
+                        Nothing    -> 0
+                        Just []    -> 0
+                        Just (r:_) -> r
 
 eRatioBL :: [[Particle]] -> Maybe [Double]
-eRatioBL pss = do
+eRatioBL pss =
   -- The elements of blpairs are guaranteed to have exactly one pair of
   -- b-quark and lepton or nothing by containsBL.
-  blpairs <- filterM containsBL pss
-  mapM (runReaderT eRatioBL') blpairs
+    mapM (runReaderT eRatioBL') =<< filterM containsBL pss
 
 eRatioBL' :: ReaderT [Particle] Maybe Double
 eRatioBL' = do eLepton <- theEnergy lepton
