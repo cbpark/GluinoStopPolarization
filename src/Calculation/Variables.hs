@@ -12,20 +12,22 @@ import           Control.Monad                     (filterM)
 import           Control.Monad.Trans.Class         (lift)
 import           Control.Monad.Trans.Reader        (Reader, ReaderT (..), ask,
                                                     runReader)
-import qualified Data.ByteString.Char8             as B
+import           Data.ByteString.Char8             (ByteString)
 import           Data.Double.Conversion.ByteString (toFixed)
 
-eRatioBLTruePair :: ParticleMap -> B.ByteString
+eRatioBLTruePair :: ParticleMap -> ByteString
 eRatioBLTruePair = runReader $ eRatioBLpair particlesFromTop
 
-eRatioBLpair :: (ParticleMap -> [[Particle]]) -> Reader ParticleMap B.ByteString
-eRatioBLpair getPair = do pm <- ask
-                          let e = case eRatioBL (getPair pm) of Nothing -> 0
-                                                                Just [] -> 0
-                                                                Just (r:_) -> r
-                          return $ toFixed 3 e
+eRatioBLpair :: (ParticleMap -> ParticlePairs)
+             -> Reader ParticleMap ByteString
+eRatioBLpair getPair = do
+  pm <- ask
+  let e = case (eRatioBL . getPair) pm of Nothing    -> 0
+                                          Just []    -> 0
+                                          Just (r:_) -> r
+  return $ toFixed 3 e
 
-eRatioBL :: [[Particle]] -> Maybe [Double]
+eRatioBL :: ParticlePairs -> Maybe [Double]
 eRatioBL pss =
     -- The elements of blpairs are guaranteed to have exactly one pair of
     -- b-quark and lepton or nothing by containsBL.

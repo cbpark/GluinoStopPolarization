@@ -4,6 +4,8 @@ module Calculation.ParSelector where
 
 import           HEP.Data.LHEF
 
+type ParticlePairs = [[Particle]]
+
 topQuark :: [Int]
 topQuark = [6]
 
@@ -13,11 +15,11 @@ bQuark = [5]
 lepton :: [Int]
 lepton = [11,13]
 
-particlesFromTop :: ParticleMap -> [[Particle]]
+particlesFromTop :: ParticleMap -> ParticlePairs
 particlesFromTop pm = let ps = particlesFrom topQuark pm
                       in map (filter (inParticles (bQuark ++ lepton))) ps
 
-particlesOfAllBL :: ParticleMap -> [[Particle]]
+particlesOfAllBL :: ParticleMap -> ParticlePairs
 particlesOfAllBL pm = let fstates = finalStates pm
                           lep = filter (inParticles lepton) fstates
                           bs = filter (inParticles bQuark) fstates
