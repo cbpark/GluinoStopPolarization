@@ -19,7 +19,7 @@ parseAndCalc str = case parse parseEvent str of
                      Done evRemained evParsed ->
                          do let parmap = snd evParsed
                             B.putStrLn $ eRatioBLTruePair parmap
-                            B.putStrLn $ B.intercalate "  " (eRatioBLAllPair parmap)
+                            -- B.putStrLn $ B.intercalate "  " (eRatioBLAllPair parmap)
                             parseAndCalc evRemained
 
 main :: IO ()

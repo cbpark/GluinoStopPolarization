@@ -2,7 +2,6 @@ module Calculation.Variables
     (
     -- * Energy ratio of b quark and lepton
       eRatioBLTruePair
-    , eRatioBLAllPair
     ) where
 
 import           HEP.Data.LHEF
@@ -11,23 +10,20 @@ import           Calculation.ParSelector
 
 import           Control.Monad                     (filterM)
 import           Control.Monad.Trans.Class         (lift)
-import           Control.Monad.Trans.Reader        (ReaderT (..), ask)
+import           Control.Monad.Trans.Reader        (Reader, ReaderT (..), ask,
+                                                    runReader)
 import qualified Data.ByteString.Char8             as B
 import           Data.Double.Conversion.ByteString (toFixed)
 
 eRatioBLTruePair :: ParticleMap -> B.ByteString
-eRatioBLTruePair pm = let e = case eRatioBL (particlesFromTop pm) of
-                                Nothing    -> 0
-                                Just []    -> 0
-                                Just (r:_) -> r
-                      in toFixed 3 e
+eRatioBLTruePair = runReader $ eRatioBLpair particlesFromTop
 
-eRatioBLAllPair :: ParticleMap -> [B.ByteString]
-eRatioBLAllPair pm = let e = case eRatioBL (particlesOfAllBL pm) of
-                                Nothing -> [0]
-                                Just [] -> [0]
-                                Just r  -> r
-                      in map (toFixed 3) e
+eRatioBLpair :: (ParticleMap -> [[Particle]]) -> Reader ParticleMap B.ByteString
+eRatioBLpair getPair = do pm <- ask
+                          let e = case eRatioBL (getPair pm) of Nothing -> 0
+                                                                Just [] -> 0
+                                                                Just (r:_) -> r
+                          return $ toFixed 3 e
 
 eRatioBL :: [[Particle]] -> Maybe [Double]
 eRatioBL pss =
