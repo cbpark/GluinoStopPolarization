@@ -14,8 +14,16 @@ lepton :: [Int]
 lepton = [11,13]
 
 particlesFromTop :: ParticleMap -> [[Particle]]
-particlesFromTop pm =
-    map (filter (inParticles (bQuark ++ lepton))) (particlesFrom topQuark pm)
+particlesFromTop pm = let ps = particlesFrom topQuark pm
+                      in map (filter (inParticles (bQuark ++ lepton))) ps
+
+particlesOfAllBL :: ParticleMap -> [[Particle]]
+particlesOfAllBL pm = let fstates = finalStates pm
+                          lep = filter (inParticles lepton) fstates
+                          bs = filter (inParticles bQuark) fstates
+                      in if null lep || null bs
+                         then []
+                         else foldr (\b xs -> ((b:lep):xs)) [] bs
 
 containsBL :: [Particle] -> Maybe Bool
 containsBL ps = do let (totnb, totnl) = counter ps

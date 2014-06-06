@@ -2,6 +2,7 @@ module Calculation.Variables
     (
     -- * Energy ratio of b quark and lepton
       eRatioBLTruePair
+    , eRatioBLAllPair
     ) where
 
 import           HEP.Data.LHEF
@@ -20,6 +21,13 @@ eRatioBLTruePair pm = let e = case eRatioBL (particlesFromTop pm) of
                                 Just []    -> 0
                                 Just (r:_) -> r
                       in toFixed 3 e
+
+eRatioBLAllPair :: ParticleMap -> [B.ByteString]
+eRatioBLAllPair pm = let e = case eRatioBL (particlesOfAllBL pm) of
+                                Nothing -> [0]
+                                Just [] -> [0]
+                                Just r  -> r
+                      in map (toFixed 3) e
 
 eRatioBL :: [[Particle]] -> Maybe [Double]
 eRatioBL pss =
