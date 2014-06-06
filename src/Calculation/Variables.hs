@@ -8,20 +8,23 @@ import           HEP.Data.LHEF
 
 import           Calculation.ParSelector
 
-import           Control.Monad              (filterM)
-import           Control.Monad.Trans.Class  (lift)
-import           Control.Monad.Trans.Reader (ReaderT (..), ask)
+import           Control.Monad                     (filterM)
+import           Control.Monad.Trans.Class         (lift)
+import           Control.Monad.Trans.Reader        (ReaderT (..), ask)
+import qualified Data.ByteString.Char8             as B
+import           Data.Double.Conversion.ByteString (toFixed)
 
-eRatioBLTruePair :: ParticleMap -> Double
-eRatioBLTruePair pm = case eRatioBL (particlesFromTop pm) of
-                        Nothing    -> 0
-                        Just []    -> 0
-                        Just (r:_) -> r
+eRatioBLTruePair :: ParticleMap -> B.ByteString
+eRatioBLTruePair pm = let e = case eRatioBL (particlesFromTop pm) of
+                                Nothing    -> 0
+                                Just []    -> 0
+                                Just (r:_) -> r
+                      in toFixed 3 e
 
 eRatioBL :: [[Particle]] -> Maybe [Double]
 eRatioBL pss =
-  -- The elements of blpairs are guaranteed to have exactly one pair of
-  -- b-quark and lepton or nothing by containsBL.
+    -- The elements of blpairs are guaranteed to have exactly one pair of
+    -- b-quark and lepton or nothing by containsBL.
     mapM (runReaderT eRatioBL') =<< filterM containsBL pss
 
 eRatioBL' :: ReaderT [Particle] Maybe Double
