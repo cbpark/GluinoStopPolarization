@@ -12,6 +12,7 @@ cabal-version:       >=1.10
 
 executable GluinoStopPolarization
   main-is:             Main.hs
+  other-modules:       Calculation.Variables
   build-depends:       base >=4.6,
                        attoparsec >=0.12,
                        bytestring >=0.10,
