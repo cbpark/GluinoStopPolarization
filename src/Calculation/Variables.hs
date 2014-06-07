@@ -22,23 +22,20 @@ eRatioBLpair :: (ParticleMap -> ParticlePairs)
              -> Reader ParticleMap ByteString
 eRatioBLpair getPair = do
   pm <- ask
-  let e = case (eRatioBL . getPair) pm of Nothing    -> 0
-                                          Just []    -> 0
-                                          Just (r:_) -> r
+  let e = case (eRatioBLs . getPair) pm of Nothing    -> 0
+                                           Just []    -> 0
+                                           Just (r:_) -> r
   return $ toFixed 3 e
 
-eRatioBL :: ParticlePairs -> Maybe [Double]
-eRatioBL pss =
-    -- The elements of blpairs are guaranteed to have exactly one pair of
-    -- b-quark and lepton or nothing by containsBL.
-    mapM (runReaderT eRatioBL') =<< filterM containsBL pss
+eRatioBLs :: ParticlePairs -> Maybe [Double]
+eRatioBLs pss = mapM (runReaderT eRatioBLs') =<< filterM containsBL pss
 
-eRatioBL' :: ReaderT [Particle] Maybe Double
-eRatioBL' = do eLepton <- theEnergy lepton
-               eBquark <- theEnergy bQuark
-               return $ eLepton / (eBquark + eLepton)
-    where theEnergy :: [Int] -> ReaderT [Particle] Maybe Double
-          theEnergy ns = do ps <- ask
-                            case filter (inParticles ns) ps of
-                              []    -> lift Nothing
-                              (p:_) -> return (energyOf p)
+eRatioBLs' :: ReaderT [Particle] Maybe Double
+eRatioBLs' = do eLepton <- theEnergyOf lepton
+                eBquark <- theEnergyOf bQuark
+                return $ eLepton / (eBquark + eLepton)
+    where theEnergyOf :: ParType -> ReaderT [Particle] Maybe Double
+          theEnergyOf pt = do ps <- ask
+                              case filter (inParticles pt) ps of
+                                []    -> lift Nothing
+                                (p:_) -> return (energyOf p)

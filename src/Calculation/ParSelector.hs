@@ -6,13 +6,15 @@ import           HEP.Data.LHEF
 
 type ParticlePairs = [[Particle]]
 
-topQuark :: [Int]
+type ParType = [Int]
+
+topQuark :: ParType
 topQuark = [6]
 
-bQuark :: [Int]
+bQuark :: ParType
 bQuark = [5]
 
-lepton :: [Int]
+lepton :: ParType
 lepton = [11,13]
 
 particlesFromTop :: ParticleMap -> ParticlePairs
