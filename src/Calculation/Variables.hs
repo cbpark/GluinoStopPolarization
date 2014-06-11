@@ -5,6 +5,12 @@ module Calculation.Variables
     , eRatioBLbyM
     , eRatioBLbyPT
     , eRatioBLbyTheta
+
+    -- * Invariant mass of b quark and lepton
+    , mBLTrue
+
+    -- * Missing transverse momentum
+    , missingET
     )
     where
 
@@ -40,23 +46,23 @@ eRatioBLpair :: (ParticleMap -> ParticlePairs)
              -> Reader ParticleMap ByteString
 eRatioBLpair getPair = do
   pm <- ask
-  let e = case (eRatioBLs . getPair) pm of Just (r:_) -> r
-                                           Just []    -> -1
-                                           Nothing    -> -1
+  let e = case (eRatioBL . getPair) pm of Just (r:_) -> r
+                                          _          -> -1
   return $ toFixed 3 e
 
-eRatioBLs :: ParticlePairs -> Maybe [Double]
-eRatioBLs pss = mapM (runReaderT eRatioBLs') =<< filterM containsBL pss
+eRatioBL :: ParticlePairs -> Maybe [Double]
+eRatioBL pss = filterM containsBL pss >>= mapM (runReaderT eRatioBL')
+    where
+      eRatioBL' :: ReaderT [Particle] Maybe Double
+      eRatioBL' = do eLepton <- theEnergyOf lepton
+                     eBquark <- theEnergyOf bQuark
+                     return $ eLepton / (eBquark + eLepton)
 
-eRatioBLs' :: ReaderT [Particle] Maybe Double
-eRatioBLs' = do eLepton <- theEnergyOf lepton
-                eBquark <- theEnergyOf bQuark
-                return $ eLepton / (eBquark + eLepton)
-    where theEnergyOf :: ParType -> ReaderT [Particle] Maybe Double
-          theEnergyOf par = do ps <- ask
-                               case find (`is` par) ps of
-                                 Just p  -> return (energyOf p)
-                                 Nothing -> lift Nothing
+      theEnergyOf :: ParType -> ReaderT [Particle] Maybe Double
+      theEnergyOf par = do ps <- ask
+                           case find (`is` par) ps of
+                             Just p  -> return (energyOf p)
+                             Nothing -> lift Nothing
 
 data Choice = ByMin | ByMax
 data HowPair = HowPair ([Particle] -> Double) Choice
@@ -68,17 +74,33 @@ pairBy (HowPair func choice) pm =
         chosenPair = case choice of ByMax -> Map.maxView pairMap
                                     ByMin -> Map.minView pairMap
     in case chosenPair of Just (pair, _) -> [pair]
-                          Nothing        -> []
+                          _              -> []
 
 pairByM :: ParticleMap -> ParticlePairs
 pairByM = pairBy (HowPair invMass ByMin)
-    where invMass = invariantMass . foldr ((.+.) . fourMomentum) zero
+
+invMass :: [Particle] -> Double
+invMass = invariantMass . foldr ((.+.) . fourMomentum) zero
 
 pairByPT :: ParticleMap -> ParticlePairs
 pairByPT = pairBy (HowPair transMomentum ByMax)
-    where transMomentum = pT . foldr ((.+.) . fourMomentum) zero
+
+transMomentum :: [Particle] -> Double
+transMomentum = pT . foldr ((.+.) . fourMomentum) zero
 
 pairByTheta :: ParticleMap -> ParticlePairs
 pairByTheta = pairBy (HowPair cosTheta ByMax)
     where cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
           cosTheta _       = -1
+
+mBLTrue :: ParticleMap -> ByteString
+mBLTrue pm = toFixed 2 $ case mBLTrue' pm of Just (m:_) -> m
+                                             _          -> -1
+    where mBLTrue' :: ParticleMap -> Maybe [Double]
+          mBLTrue' pm' = do
+            let pss = particlesFromTop pm'
+            pss' <- filterM containsBL pss
+            return $ map invMass pss'
+
+missingET :: ParticleMap -> ByteString
+missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates

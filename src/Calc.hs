@@ -23,6 +23,8 @@ parseAndCalc str =
              B.putStrLn $ eRatioBLbyM parmap
              B.putStrLn $ eRatioBLbyPT parmap
              B.putStrLn $ eRatioBLbyTheta parmap
+             B.putStrLn $ mBLTrue parmap
+             B.putStrLn $ missingET parmap
              B.putStrLn "---"
              parseAndCalc evRemained
 

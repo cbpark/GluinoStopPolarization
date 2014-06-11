@@ -19,6 +19,9 @@ bQuark = [5]
 lepton :: ParType
 lepton = [11,13]
 
+invisible :: ParType
+invisible = [12,14,1000024]
+
 data ParSelec = ParSelec { ptype  :: ParType
                          , ptcut  :: Double
                          , etacut :: Double }
