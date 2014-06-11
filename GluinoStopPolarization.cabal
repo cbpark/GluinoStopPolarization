@@ -10,8 +10,8 @@ category:            Physics
 build-type:          Simple
 cabal-version:       >=1.10
 
-executable GluinoStopPolarization
-  main-is:             Main.hs
+executable GluinoStopPol_calc
+  main-is:             Calc.hs
   other-modules:       Calculation.ParSelector
                        Calculation.Variables
   build-depends:       base >=4.6,

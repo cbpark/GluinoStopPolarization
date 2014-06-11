@@ -21,6 +21,7 @@ import           Control.Monad.Trans.Reader        (Reader, ReaderT (..), ask,
 import           Data.ByteString.Char8             (ByteString)
 import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.Function                     (on)
+import           Data.List                         (find)
 import qualified Data.Map                          as Map
 
 eRatioBLTrue :: ParticleMap -> ByteString
@@ -52,10 +53,10 @@ eRatioBLs' = do eLepton <- theEnergyOf lepton
                 eBquark <- theEnergyOf bQuark
                 return $ eLepton / (eBquark + eLepton)
     where theEnergyOf :: ParType -> ReaderT [Particle] Maybe Double
-          theEnergyOf pt = do ps <- ask
-                              case filter (inParticles pt) ps of
-                                (p:_) -> return (energyOf p)
-                                []    -> lift Nothing
+          theEnergyOf par = do ps <- ask
+                               case find (`is` par) ps of
+                                 Just p  -> return (energyOf p)
+                                 Nothing -> lift Nothing
 
 data Choice = ByMin | ByMax
 data HowPair = HowPair ([Particle] -> Double) Choice
@@ -64,8 +65,8 @@ pairBy :: HowPair -> ParticleMap -> ParticlePairs
 pairBy (HowPair func choice) pm =
     let allpairs = particlesOfAllBL pm
         pairMap = foldr (\p m -> Map.insert (func p) p m) Map.empty allpairs
-        chosenPair = case choice of ByMin -> Map.minView pairMap
-                                    _     -> Map.maxView pairMap
+        chosenPair = case choice of ByMax -> Map.maxView pairMap
+                                    ByMin -> Map.minView pairMap
     in case chosenPair of Just (pair, _) -> [pair]
                           Nothing        -> []
 
