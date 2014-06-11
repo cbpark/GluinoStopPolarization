@@ -39,9 +39,9 @@ eRatioBLpair :: (ParticleMap -> ParticlePairs)
              -> Reader ParticleMap ByteString
 eRatioBLpair getPair = do
   pm <- ask
-  let e = case (eRatioBLs . getPair) pm of Nothing    -> -1
+  let e = case (eRatioBLs . getPair) pm of Just (r:_) -> r
                                            Just []    -> -1
-                                           Just (r:_) -> r
+                                           Nothing    -> -1
   return $ toFixed 3 e
 
 eRatioBLs :: ParticlePairs -> Maybe [Double]
@@ -63,11 +63,11 @@ data HowPair = HowPair ([Particle] -> Double) Choice
 pairBy :: HowPair -> ParticleMap -> ParticlePairs
 pairBy (HowPair func choice) pm =
     let allpairs = particlesOfAllBL pm
-        pairMap = Map.fromList $ zip (map func allpairs) allpairs
+        pairMap = foldr (\p m -> Map.insert (func p) p m) Map.empty allpairs
         chosenPair = case choice of ByMin -> Map.minView pairMap
                                     _     -> Map.maxView pairMap
-    in case chosenPair of Nothing        -> []
-                          Just (pair, _) -> [pair]
+    in case chosenPair of Just (pair, _) -> [pair]
+                          Nothing        -> []
 
 pairByM :: ParticleMap -> ParticlePairs
 pairByM = pairBy (HowPair invMass ByMin)
