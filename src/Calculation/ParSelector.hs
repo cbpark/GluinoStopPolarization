@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE MultiWayIf   #-}
 
 module Calculation.ParSelector where
 
@@ -22,9 +23,9 @@ particlesFromTop pm = let ps = particlesFrom topQuark pm
                       in map (filter (inParticles (bQuark ++ lepton))) ps
 
 particlesOfAllBL :: ParticleMap -> ParticlePairs
-particlesOfAllBL pm = let fstates = finalStates pm
-                          lep = filter (inParticles lepton) fstates
-                          bs = filter (inParticles bQuark) fstates
+particlesOfAllBL pm = let !fstates = finalStates pm
+                          !lep = filter (inParticles lepton) fstates
+                          !bs = filter (inParticles bQuark) fstates
                       in if null lep || null bs
                          then []
                          else foldr (\b xs -> ((b:lep):xs)) [] bs

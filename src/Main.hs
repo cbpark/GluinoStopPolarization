@@ -14,13 +14,17 @@ import           System.Environment              (getArgs)
 import           System.Exit                     (exitFailure)
 
 parseAndCalc :: C.ByteString -> IO ()
-parseAndCalc str = case parse parseEvent str of
-                     Fail r _ _               -> C.putStr r
-                     Done evRemained evParsed ->
-                         do let parmap = snd evParsed
-                            B.putStrLn $ eRatioBLTruePair parmap
-                            -- B.putStrLn $ B.intercalate "  " (eRatioBLAllPair parmap)
-                            parseAndCalc evRemained
+parseAndCalc str =
+    case parse parseEvent str of
+      Fail r _ _               -> C.putStr r
+      Done evRemained evParsed ->
+          do let parmap = snd evParsed
+             B.putStrLn $ eRatioBLTrue parmap
+             B.putStrLn $ eRatioBLbyM parmap
+             B.putStrLn $ eRatioBLbyPT parmap
+             B.putStrLn $ eRatioBLbyTheta parmap
+             B.putStrLn "---"
+             parseAndCalc evRemained
 
 main :: IO ()
 main = do
