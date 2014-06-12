@@ -1,10 +1,10 @@
 module Calculation.Variables
     (
     -- * Energy ratio of b quark and lepton
-      eRatioBLTrue
-    , eRatioBLbyM
-    , eRatioBLbyPT
-    , eRatioBLbyTheta
+      eRatioTrue
+    , eRatioByM
+    , eRatioByPT
+    , eRatioByTheta
 
     -- * Invariant mass of b quark and lepton
     , mBLTrue
@@ -30,17 +30,17 @@ import           Data.Function                     (on)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
 
-eRatioBLTrue :: ParticleMap -> ByteString
-eRatioBLTrue = runReader $ eRatioBLpair particlesFromTop
+eRatioTrue :: ParticleMap -> ByteString
+eRatioTrue = runReader $ eRatioBLpair particlesFromTop
 
-eRatioBLbyM :: ParticleMap -> ByteString
-eRatioBLbyM = runReader $ eRatioBLpair pairByM
+eRatioByM :: ParticleMap -> ByteString
+eRatioByM = runReader $ eRatioBLpair pairByM
 
-eRatioBLbyPT :: ParticleMap -> ByteString
-eRatioBLbyPT = runReader $ eRatioBLpair pairByPT
+eRatioByPT :: ParticleMap -> ByteString
+eRatioByPT = runReader $ eRatioBLpair pairByPT
 
-eRatioBLbyTheta :: ParticleMap -> ByteString
-eRatioBLbyTheta = runReader $ eRatioBLpair pairByTheta
+eRatioByTheta :: ParticleMap -> ByteString
+eRatioByTheta = runReader $ eRatioBLpair pairByTheta
 
 eRatioBLpair :: (ParticleMap -> ParticlePairs)
              -> Reader ParticleMap ByteString
