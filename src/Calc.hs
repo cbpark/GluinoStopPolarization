@@ -43,12 +43,14 @@ parseCalcSave infile outfile = do
       writeHeader :: Handle -> IO ()
       writeHeader h = C.hPutStrLn h $
                       C.pack "# " `C.append` C.intercalate ", " [ "nEvent"
-                                                                , "eRatioTrue"
-                                                                , "eRatioByM"
-                                                                , "eRatioByPT"
-                                                                , "eRatioByTheta"
+                                                                , "eRTrue"
+                                                                , "eRByM"
+                                                                , "eRByPT"
+                                                                , "eRByTheta"
                                                                 , "mBLTrue"
-                                                                , "missingET"
+                                                                , "pTTrue"
+                                                                , "cosTrue"
+                                                                , "MET"
                                                                 ]
 
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
@@ -70,6 +72,8 @@ printResult pm hdl = do
                         , eRatioByPT
                         , eRatioByTheta
                         , mBLTrue
+                        , pTTrue
+                        , cosThetaTrue
                         , missingET
                         ] pm
   liftIO $ B.hPutStrLn hdl $
@@ -81,7 +85,7 @@ removeIfExists f = removeFile f `catch` handleExists
                        | otherwise             = throwIO e
 
 main :: IO ()
-main = -- do
+main =
   execParser opts >>= calcAndSave
       where opts = info (helper <*> cmdoptions)
                    ( fullDesc

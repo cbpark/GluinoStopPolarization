@@ -9,6 +9,12 @@ module Calculation.Variables
     -- * Invariant mass of b quark and lepton
     , mBLTrue
 
+    -- * Transverse momentum of b quark and lepton
+    , pTTrue
+
+    -- * cos(theta) of b quark and lepton
+    , cosThetaTrue
+
     -- * Missing transverse momentum
     , missingET
     )
@@ -90,17 +96,31 @@ transMomentum = pT . foldr ((.+.) . fourMomentum) zero
 
 pairByTheta :: ParticleMap -> ParticlePairs
 pairByTheta = pairBy (HowPair cosTheta ByMax)
-    where cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
-          cosTheta _       = -1
+
+cosTheta :: [Particle] -> Double
+cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
+cosTheta _       = -1
 
 mBLTrue :: ParticleMap -> ByteString
-mBLTrue pm = toFixed 2 $ case mBLTrue' pm of Just (m:_) -> m
-                                             _          -> -1
-    where mBLTrue' :: ParticleMap -> Maybe [Double]
-          mBLTrue' pm' = do
+mBLTrue = runReader $ calcVar 2 invMass
+
+pTTrue :: ParticleMap -> ByteString
+pTTrue = runReader $ calcVar 2 transMomentum
+
+cosThetaTrue :: ParticleMap -> ByteString
+cosThetaTrue = runReader $ calcVar 3 cosTheta
+
+calcVar :: Int -> ([Particle] -> Double) -> Reader ParticleMap ByteString
+calcVar n func = do
+  pm <- ask
+  return $ toFixed n $ case runReaderT (calcVar' func) pm of Just (m:_) -> m
+                                                             _          -> -1
+    where calcVar' :: ([Particle] -> Double) -> ReaderT ParticleMap Maybe [Double]
+          calcVar' f = do
+            pm' <- ask
             let pss = particlesFromTop pm'
-            pss' <- filterM containsBL pss
-            return $ map invMass pss'
+            pss' <- lift $ filterM containsBL pss
+            return $ map f pss'
 
 missingET :: ParticleMap -> ByteString
 missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates
