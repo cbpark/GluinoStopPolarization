@@ -27,9 +27,8 @@ import           HEP.Vector
 import           HEP.Vector.LorentzVector
 
 import           Control.Monad                     (filterM)
-import           Control.Monad.Trans.Class         (lift)
-import           Control.Monad.Trans.Reader        (Reader, ReaderT (..), ask,
-                                                    runReader)
+import           Control.Monad.Trans.Class
+import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString)
 import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.Function                     (on)
@@ -78,7 +77,7 @@ pairBy (HowPair func choice) pm =
     let allpairs = particlesOfAllBL pm
         pairMap = foldr (\p m -> Map.insert (func p) p m) Map.empty allpairs
         chosenPair = case choice of ByMax -> Map.maxView pairMap
-                                    ByMin -> Map.minView pairMap
+                                    _     -> Map.minView pairMap
     in case chosenPair of Just (pair, _) -> [pair]
                           _              -> []
 
@@ -99,7 +98,7 @@ pairByTheta = pairBy (HowPair cosTheta ByMax)
 
 cosTheta :: [Particle] -> Double
 cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
-cosTheta _       = -1
+cosTheta _       = -10
 
 mBLTrue :: ParticleMap -> ByteString
 mBLTrue = runReader $ calcVar 2 invMass

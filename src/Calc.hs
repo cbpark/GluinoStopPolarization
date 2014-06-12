@@ -90,5 +90,5 @@ main =
       where opts = info (helper <*> cmdoptions)
                    ( fullDesc
                   <> progDesc ( "Calculate collider variables for top quarks" ++
-                               " in the gluino decays" )
+                                " in the gluino decays" )
                   <> header "GluinoStop_calc - calculate collider variables" )
