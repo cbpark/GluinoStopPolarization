@@ -7,26 +7,64 @@ import           Calculation.Variables
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
 
-import           Control.Monad                   (when)
+import           Control.Exception               (catch, throwIO)
+import           Control.Monad.IO.Class          (liftIO)
+import           Control.Monad.Trans.State       (StateT (..), get, modify)
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
 import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
-import           Database.HDBC
-import           Database.HDBC.Sqlite3           (connectSqlite3)
-import           System.Environment              (getArgs)
-import           System.Exit                     (exitFailure)
+import           Options.Applicative
+import           System.Directory                (removeFile)
+import           System.IO                       (Handle, IOMode (..), withFile)
+import           System.IO.Error                 (isDoesNotExistError)
 
-parseAndCalc :: C.ByteString -> IO ()
-parseAndCalc str =
-    case parse parseEvent str of
-      Fail r _ _               -> C.putStr r
-      Done evRemained evParsed ->
-          do let parmap = snd evParsed
-             printResult parmap
-             parseAndCalc evRemained
+data Args = Args { input :: String, output :: String }
 
-printResult :: ParticleMap -> IO ()
-printResult pm = do
+cmdoptions :: Parser Args
+cmdoptions = Args <$> strOption ( long "input"
+                               <> metavar "LHEF"
+                               <> help "Input LHEF file" ) <*>
+                      strOption ( long "output"
+                               <> metavar "OUTPUT"
+                               <> help "Output file to save the result" )
+
+calcAndSave :: Args -> IO ()
+calcAndSave (Args infile outfile) = infile `parseCalcSave` outfile
+
+parseCalcSave :: FilePath -> FilePath -> IO ()
+parseCalcSave infile outfile = do
+  removeIfExists outfile
+  evstr <- C.readFile infile
+  (_, ntot) <- withFile outfile WriteMode $ \hdl -> do
+                                 writeHeader hdl
+                                 runStateT ((parseCalcSave' . stripLHEF) evstr hdl) 0
+  C.putStrLn . C.pack $ "Total number of events parsed = " ++ show (ntot - 1)
+    where
+      writeHeader :: Handle -> IO ()
+      writeHeader h = C.hPutStrLn h $
+                      C.pack "# " `C.append` C.intercalate ", " [ "nEvent"
+                                                                , "eRatioTrue"
+                                                                , "eRatioByM"
+                                                                , "eRatioByPT"
+                                                                , "eRatioByTheta"
+                                                                , "mBLTrue"
+                                                                , "missingET"
+                                                                ]
+
+      parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
+      parseCalcSave' s h = do
+            modify (+1)
+
+            case parse parseEvent s of
+              Fail r _ _               -> liftIO $ C.putStr r
+              Done evRemained evParsed ->
+                  do let parmap = snd evParsed
+                     printResult parmap h
+                     parseCalcSave' evRemained h
+
+printResult :: ParticleMap -> Handle -> StateT Integer IO ()
+printResult pm hdl = do
+  neve <- get
   let result = sequence [ eRatioTrue
                         , eRatioByM
                         , eRatioByPT
@@ -34,31 +72,19 @@ printResult pm = do
                         , mBLTrue
                         , missingET
                         ] pm
-  B.putStrLn (B.intercalate "   " result)
+  liftIO $ B.hPutStrLn hdl $
+         B.pack (show neve ++ ", ") `B.append` B.intercalate ", " result
+
+removeIfExists :: FilePath -> IO ()
+removeIfExists f = removeFile f `catch` handleExists
+  where handleExists e | isDoesNotExistError e = return ()
+                       | otherwise             = throwIO e
 
 main :: IO ()
-main = do
-  args <- getArgs
-
-  when (length args /= 1) $ do
-         putStrLn "Supply the input file name."
-         exitFailure
-
-  evstr <- C.readFile (head args)
-  (parseAndCalc . stripLHEF) evstr
-
-  conn <- connectSqlite3 "test.db"
-  run conn ("CREATE TABLE var (id INTEGER PRIMARY KEY AUTOINCREMENT" ++
-            ", eRatioTrue REAL" ++
-            ", eRatioByM REAL" ++
-            ", eRatioByPT REAL" ++
-            ", eRatioByTheta REAL" ++
-            ")"
-           ) []
-  run conn "INSERT INTO var (eRatioTrue, eRatioByM, eRatioByPT, eRatioByTheta) VALUES (?, ?, ?, ?)"
-          [ toSql (1 :: Double)
-          , toSql (2 :: Double)
-          , toSql (3 :: Double)
-          , toSql (4 :: Double)]
-  commit conn
-  disconnect conn
+main = -- do
+  execParser opts >>= calcAndSave
+      where opts = info (helper <*> cmdoptions)
+                   ( fullDesc
+                  <> progDesc ( "Calculate collider variables for top quarks" ++
+                               " in the gluino decays" )
+                  <> header "GluinoStop_calc - calculate collider variables" )

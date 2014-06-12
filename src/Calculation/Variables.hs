@@ -62,7 +62,7 @@ eRatioBL pss = filterM containsBL pss >>= mapM (runReaderT eRatioBL')
       theEnergyOf par = do ps <- ask
                            case find (`is` par) ps of
                              Just p  -> return (energyOf p)
-                             Nothing -> lift Nothing
+                             _       -> lift Nothing
 
 data Choice = ByMin | ByMax
 data HowPair = HowPair ([Particle] -> Double) Choice
