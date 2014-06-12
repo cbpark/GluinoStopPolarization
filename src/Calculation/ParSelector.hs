@@ -1,7 +1,18 @@
 {-# LANGUAGE MultiWayIf      #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Calculation.ParSelector where
+module Calculation.ParSelector
+    (
+      ParticlePairs
+
+    , topQuark
+    , bQuark
+    , lepton
+    , invisible
+    , particlesFromTop
+    , particlesOfAllBL
+    , containsBL
+    ) where
 
 import           HEP.Data.LHEF
 import           HEP.Vector.LorentzVector

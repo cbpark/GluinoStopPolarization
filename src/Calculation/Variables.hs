@@ -17,8 +17,7 @@ module Calculation.Variables
 
     -- * Missing transverse momentum
     , missingET
-    )
-    where
+    ) where
 
 import           Calculation.ParSelector
 
