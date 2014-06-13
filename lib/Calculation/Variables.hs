@@ -40,15 +40,15 @@ import           Data.List                         (find)
 import qualified Data.Map                          as Map
 
 variables :: [C.ByteString]
-variables = [ "nEvent"
-            , "eRTrue"
-            , "eRByM"
-            , "eRByPT"
-            , "eRByTheta"
-            , "mBLTrue"
-            , "pTTrue"
-            , "cosTrue"
-            , "MET"
+variables = [ "neve"
+            , "er_true"
+            , "er_by_m"
+            , "er_by_pt"
+            , "er_by_theta"
+            , "mbl_true"
+            , "pt_true"
+            , "cos_theta_true"
+            , "met"
             ]
 
 eRatioTrue :: ParticleMap -> ByteString

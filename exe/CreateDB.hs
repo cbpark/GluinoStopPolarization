@@ -17,8 +17,8 @@ cmdoptions = Args <$> strOption ( long "input"
 
 importData :: FilePath -> String
 importData filename = unlines
-    [ "Create TABLE var (id INTEGER PRIMARY KEY" ++
-      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") variables ++ ");"
+    [ "Create TABLE var (neve INTEGER PRIMARY KEY" ++
+      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (tail variables) ++ ");"
     , ".separator \',\'"
     , ".import " ++ filename ++ " var"
     ]
