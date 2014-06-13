@@ -1,7 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Calculation.Variables
     (
+     variables
+
     -- * Energy ratio of b quark and lepton
-      eRatioTrue
+    , eRatioTrue
     , eRatioByM
     , eRatioByPT
     , eRatioByTheta
@@ -29,10 +33,23 @@ import           Control.Monad                     (filterM)
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString)
+import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.Function                     (on)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
+
+variables :: [C.ByteString]
+variables = [ "nEvent"
+            , "eRTrue"
+            , "eRByM"
+            , "eRByPT"
+            , "eRByTheta"
+            , "mBLTrue"
+            , "pTTrue"
+            , "cosTrue"
+            , "MET"
+            ]
 
 eRatioTrue :: ParticleMap -> ByteString
 eRatioTrue = runReader $ eRatioBLpair particlesFromTop

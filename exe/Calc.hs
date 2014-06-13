@@ -42,16 +42,7 @@ parseCalcSave infile outfile = do
     where
       writeHeader :: Handle -> IO ()
       writeHeader h = C.hPutStrLn h $
-                      C.pack "# " `C.append` C.intercalate ", " [ "nEvent"
-                                                                , "eRTrue"
-                                                                , "eRByM"
-                                                                , "eRByPT"
-                                                                , "eRByTheta"
-                                                                , "mBLTrue"
-                                                                , "pTTrue"
-                                                                , "cosTrue"
-                                                                , "MET"
-                                                                ]
+                      C.pack "# " `C.append` C.intercalate ", " variables
 
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
       parseCalcSave' s h = do
