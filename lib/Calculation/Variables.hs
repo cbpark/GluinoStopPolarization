@@ -2,7 +2,8 @@
 
 module Calculation.Variables
     (
-     variables
+      VarFunc
+    , variables
 
     -- * Energy ratio of b quark and lepton
     , eRatioTrue
@@ -38,30 +39,44 @@ import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.Function                     (on)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
-import qualified Data.IntMap                          as IntMap
 
-variables :: IntMap.IntMap C.ByteString
-variables = IntMap.fromList $ zip [1..] [ "neve"
-                                        , "er_true"
-                                        , "er_by_m"
-                                        , "er_by_pt"
-                                        , "er_by_theta"
-                                        , "mbl_true"
-                                        , "pt_true"
-                                        , "cos_theta_true"
-                                        , "met"
-                                        ]
+type VarFunc = ParticleMap -> ByteString
 
-eRatioTrue :: ParticleMap -> ByteString
+variables :: Map.Map C.ByteString VarFunc
+variables = Map.fromList $ zip vars varFuncs
+
+vars :: [C.ByteString]
+vars = [ "er_true"
+       , "er_by_m"
+       , "er_by_pt"
+       , "er_by_theta"
+       , "mbl_true"
+       , "pt_true"
+       , "cos_theta_true"
+       , "met"
+       ]
+
+varFuncs :: [VarFunc]
+varFuncs = [ eRatioTrue
+           , eRatioByM
+           , eRatioByPT
+           , eRatioByTheta
+           , mBLTrue
+           , pTTrue
+           , cosThetaTrue
+           , missingET
+           ]
+
+eRatioTrue :: VarFunc
 eRatioTrue = runReader $ eRatioBLpair particlesFromTop
 
-eRatioByM :: ParticleMap -> ByteString
+eRatioByM :: VarFunc
 eRatioByM = runReader $ eRatioBLpair pairByM
 
-eRatioByPT :: ParticleMap -> ByteString
+eRatioByPT :: VarFunc
 eRatioByPT = runReader $ eRatioBLpair pairByPT
 
-eRatioByTheta :: ParticleMap -> ByteString
+eRatioByTheta :: VarFunc
 eRatioByTheta = runReader $ eRatioBLpair pairByTheta
 
 eRatioBLpair :: (ParticleMap -> ParticlePairs)
@@ -117,13 +132,13 @@ cosTheta :: [Particle] -> Double
 cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
 cosTheta _       = -10
 
-mBLTrue :: ParticleMap -> ByteString
+mBLTrue :: VarFunc
 mBLTrue = runReader $ calcVar 2 invMass
 
-pTTrue :: ParticleMap -> ByteString
+pTTrue :: VarFunc
 pTTrue = runReader $ calcVar 2 transMomentum
 
-cosThetaTrue :: ParticleMap -> ByteString
+cosThetaTrue :: VarFunc
 cosThetaTrue = runReader $ calcVar 3 cosTheta
 
 calcVar :: Int -> ([Particle] -> Double) -> Reader ParticleMap ByteString
@@ -138,5 +153,5 @@ calcVar n func = do
             pss' <- lift $ filterM containsBL pss
             return $ map f pss'
 
-missingET :: ParticleMap -> ByteString
+missingET :: VarFunc
 missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates

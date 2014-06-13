@@ -5,16 +5,16 @@ module Main where
 
 import           Calculation.Variables      (variables)
 
-import           IOHelper                   (removeIfExists)
-
-import           Control.Exception          (IOException, catch, finally)
+import           Control.Exception          (IOException, catch, finally,
+                                             throwIO)
 import qualified Data.ByteString.Lazy.Char8 as C
+import qualified Data.Map                   as Map
 import           Options.Applicative
 import           System.Directory           (getTemporaryDirectory, removeFile)
 import           System.Exit                (ExitCode (..))
 import           System.IO
+import           System.IO.Error            (isDoesNotExistError)
 import           System.Process
-import Data.IntMap (elems)
 
 data Args = Args { input :: String, output :: String }
 
@@ -28,8 +28,8 @@ cmdoptions = Args <$> strOption ( long "input"
 
 sqlCommand :: FilePath -> String
 sqlCommand filename = unlines
-    [ "Create TABLE var (neve INTEGER PRIMARY KEY" ++
-      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (tail $ elems variables)
+    [ "CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
+      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (Map.keys variables)
       ++ ");"
     , ".separator \',\'"
     , ".import " ++ filename ++ " var"
@@ -38,12 +38,9 @@ sqlCommand filename = unlines
 importData :: Args -> IO ()
 importData (Args infile outfile) = do
   removeIfExists outfile
-
   (Just hin, _, _, ph) <- createProcess (proc "sqlite3" [outfile])
                           { std_in = CreatePipe }
-
   (tempfile, temphandle) <- tempData infile
-
   finally ( do hPutStr hin $ sqlCommand tempfile
                hClose temphandle )
           ( do exitcode <- waitForProcess ph
@@ -52,17 +49,21 @@ importData (Args infile outfile) = do
                                              show r ++ ")."
                             ExitSuccess   -> outfile ++ " has been created."
                removeFile tempfile )
+      where tempData :: FilePath -> IO (FilePath, Handle)
+            tempData filename = do
+              inputh <- openFile filename ReadMode
+              contents <- C.hGetContents inputh
+              tmpdir <- getTemporaryDirectory `catch`
+                        (\(_ :: IOException) -> return ".")
+              (tempf, temph) <- openTempFile tmpdir filename
+              C.hPutStr temph $ (C.unlines . tail . C.lines) contents
+              hClose inputh
+              return (tempf, temph)
 
-      where
-        tempData :: FilePath -> IO (FilePath, Handle)
-        tempData filename = do
-          inputh <- openFile filename ReadMode
-          contents <- C.hGetContents inputh
-          tmpdir <- getTemporaryDirectory `catch` (\(_ :: IOException) -> return ".")
-          (tempf, temph) <- openTempFile tmpdir filename
-          C.hPutStr temph $ (C.unlines . tail . C.lines) contents
-          hClose inputh
-          return (tempf, temph)
+removeIfExists :: FilePath -> IO ()
+removeIfExists f = removeFile f `catch` handleExists
+  where handleExists e | isDoesNotExistError e = return ()
+                       | otherwise             = throwIO e
 
 main :: IO ()
 main =
