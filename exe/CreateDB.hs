@@ -14,6 +14,7 @@ import           System.Directory           (getTemporaryDirectory, removeFile)
 import           System.Exit                (ExitCode (..))
 import           System.IO
 import           System.Process
+import Data.IntMap (elems)
 
 data Args = Args { input :: String, output :: String }
 
@@ -28,7 +29,8 @@ cmdoptions = Args <$> strOption ( long "input"
 sqlCommand :: FilePath -> String
 sqlCommand filename = unlines
     [ "Create TABLE var (neve INTEGER PRIMARY KEY" ++
-      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (tail variables) ++ ");"
+      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (tail $ elems variables)
+      ++ ");"
     , ".separator \',\'"
     , ".import " ++ filename ++ " var"
     ]

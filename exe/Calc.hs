@@ -14,6 +14,7 @@ import           Control.Monad.Trans.State       (StateT (..), get, modify)
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
 import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
+import           Data.IntMap                     (elems)
 import           Options.Applicative
 import           System.IO                       (Handle, IOMode (..), withFile)
 
@@ -41,7 +42,7 @@ parseCalcSave infile outfile = do
     where
       writeHeader :: Handle -> IO ()
       writeHeader h = C.hPutStrLn h $
-                      C.pack "# " `C.append` C.intercalate ", " variables
+                      C.pack "# " `C.append` C.intercalate ", " (elems variables)
 
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
       parseCalcSave' s h = do

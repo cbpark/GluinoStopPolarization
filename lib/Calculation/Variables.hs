@@ -38,18 +38,19 @@ import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.Function                     (on)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
+import qualified Data.IntMap                          as IntMap
 
-variables :: [C.ByteString]
-variables = [ "neve"
-            , "er_true"
-            , "er_by_m"
-            , "er_by_pt"
-            , "er_by_theta"
-            , "mbl_true"
-            , "pt_true"
-            , "cos_theta_true"
-            , "met"
-            ]
+variables :: IntMap.IntMap C.ByteString
+variables = IntMap.fromList $ zip [1..] [ "neve"
+                                        , "er_true"
+                                        , "er_by_m"
+                                        , "er_by_pt"
+                                        , "er_by_theta"
+                                        , "mbl_true"
+                                        , "pt_true"
+                                        , "cos_theta_true"
+                                        , "met"
+                                        ]
 
 eRatioTrue :: ParticleMap -> ByteString
 eRatioTrue = runReader $ eRatioBLpair particlesFromTop

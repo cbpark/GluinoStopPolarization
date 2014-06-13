@@ -30,6 +30,7 @@ executable gluinostoppol_calc
   build-depends:       base >=4.6,
                        attoparsec >=0.12,
                        bytestring >=0.10,
+                       containers >=0.5,
                        directory >=1.2,
                        optparse-applicative >=0.9,
                        transformers >=0.4,
@@ -44,6 +45,7 @@ executable gluinostoppol_createdb
   other-modules:       IOHelper
   build-depends:       base >=4.6,
                        bytestring >=0.10,
+                       containers >=0.5,
                        directory >=1.2,
                        optparse-applicative >=0.9,
                        process >=1.2,
