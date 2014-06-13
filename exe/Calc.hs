@@ -4,19 +4,18 @@ module Main where
 
 import           Calculation.Variables
 
+import           IOHelper                        (removeIfExists)
+
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
 
-import           Control.Exception               (catch, throwIO)
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Trans.State       (StateT (..), get, modify)
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
 import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
 import           Options.Applicative
-import           System.Directory                (removeFile)
 import           System.IO                       (Handle, IOMode (..), withFile)
-import           System.IO.Error                 (isDoesNotExistError)
 
 data Args = Args { input :: String, output :: String }
 
@@ -69,11 +68,6 @@ printResult pm hdl = do
                         ] pm
   liftIO $ B.hPutStrLn hdl $
          B.pack (show neve ++ ", ") `B.append` B.intercalate ", " result
-
-removeIfExists :: FilePath -> IO ()
-removeIfExists f = removeFile f `catch` handleExists
-  where handleExists e | isDoesNotExistError e = return ()
-                       | otherwise             = throwIO e
 
 main :: IO ()
 main =
