@@ -11,6 +11,7 @@ import           Control.Exception               (catch, throwIO)
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Trans.State       (StateT (..), get, modify)
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
+import qualified Data.ByteString.Char8      as B
 import qualified Data.ByteString.Lazy.Char8      as C
 import qualified Data.Map                        as Map
 import           Database.HDBC
@@ -55,21 +56,29 @@ prepareDB outfile = do
   conn <- connectSqlite3 outfile
   run conn ("CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
             concatMap (\v -> ", " ++ C.unpack v ++ " REAL")
-                      (Map.keys variables) ++ ");") []
+                      (Map.keys var) ++ ");") []
+  run conn ("CREATE TABLE varallcomb (neve INTEGER PRIMARY KEY" ++
+            concatMap (\v -> ", " ++ C.unpack v ++ " TEXT")
+                      (Map.keys varallcomb) ++ ");") []
   commit conn
   return conn
 
 insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
 insertResult pm conn = do
   neve <- get
-  let result = sequence (Map.elems variables) pm
-      resultval = toSql neve : map toSql result
+  let varResult = toSql neve : map toSql (sequence (Map.elems var) pm)
+      varcomballResult = toSql neve : map (toSql . B.intercalate ", ")
+                                 (sequence (Map.elems varallcomb) pm)
   liftIO $ do
     run conn ("INSERT INTO var (neve, " ++
-              C.unpack (C.intercalate ", " (Map.keys variables)) ++
-              ") VALUES (" ++ concat (replicate (length result) "?, ") ++
-              "?)") resultval
+              insertAll var ++ "?)") varResult
+    run conn ("INSERT INTO varallcomb (neve, " ++
+              insertAll varallcomb ++ "?)") varcomballResult
     commit conn
+        where insertAll vm =
+                  C.unpack (C.intercalate ", " (Map.keys vm)) ++
+                  ") VALUES (" ++
+                  concat (replicate (length (Map.keys vm)) "?, ")
 
 removeIfExists :: FilePath -> IO ()
 removeIfExists f = removeFile f `catch` handleExists

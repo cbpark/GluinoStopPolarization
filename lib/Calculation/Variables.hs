@@ -1,9 +1,10 @@
+{-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Calculation.Variables
     (
-      VarFunc
-    , variables
+      var
+    , varallcomb
 
     -- * Energy ratio of b quark and lepton
     , eRatioTrue
@@ -13,12 +14,15 @@ module Calculation.Variables
 
     -- * Invariant mass of b quark and lepton
     , mBLTrue
+    , mBLAll
 
     -- * Transverse momentum of b quark and lepton
     , pTTrue
+    , pTAll
 
     -- * cos(theta) of b quark and lepton
     , cosThetaTrue
+    , cosThetaAll
 
     -- * Missing transverse momentum
     , missingET
@@ -40,23 +44,21 @@ import           Data.Function                     (on)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
 
-type VarFunc = ParticleMap -> ByteString
+var :: Map.Map C.ByteString (ParticleMap -> ByteString)
+var = Map.fromList $ zip varField varFuncs
 
-variables :: Map.Map C.ByteString VarFunc
-variables = Map.fromList $ zip vars varFuncs
+varField :: [C.ByteString]
+varField = [ "er_true"
+           , "er_by_m"
+           , "er_by_pt"
+           , "er_by_theta"
+           , "mbl_true"
+           , "pt_true"
+           , "cos_theta_true"
+           , "met"
+           ]
 
-vars :: [C.ByteString]
-vars = [ "er_true"
-       , "er_by_m"
-       , "er_by_pt"
-       , "er_by_theta"
-       , "mbl_true"
-       , "pt_true"
-       , "cos_theta_true"
-       , "met"
-       ]
-
-varFuncs :: [VarFunc]
+varFuncs :: [ParticleMap -> ByteString]
 varFuncs = [ eRatioTrue
            , eRatioByM
            , eRatioByPT
@@ -67,16 +69,31 @@ varFuncs = [ eRatioTrue
            , missingET
            ]
 
-eRatioTrue :: VarFunc
+varallcomb :: Map.Map C.ByteString (ParticleMap -> [ByteString])
+varallcomb = Map.fromList $ zip varallcombField varallcombFuncs
+
+varallcombField :: [C.ByteString]
+varallcombField = [ "mbl_all"
+                  , "pt_all"
+                  , "cos_theta_all"
+                  ]
+
+varallcombFuncs :: [ParticleMap -> [ByteString]]
+varallcombFuncs = [ mBLAll
+                  , pTAll
+                  , cosThetaAll
+                  ]
+
+eRatioTrue :: ParticleMap -> ByteString
 eRatioTrue = runReader $ eRatioBLpair particlesFromTop
 
-eRatioByM :: VarFunc
+eRatioByM :: ParticleMap -> ByteString
 eRatioByM = runReader $ eRatioBLpair pairByM
 
-eRatioByPT :: VarFunc
+eRatioByPT :: ParticleMap -> ByteString
 eRatioByPT = runReader $ eRatioBLpair pairByPT
 
-eRatioByTheta :: VarFunc
+eRatioByTheta :: ParticleMap -> ByteString
 eRatioByTheta = runReader $ eRatioBLpair pairByTheta
 
 eRatioBLpair :: (ParticleMap -> ParticlePairs)
@@ -132,26 +149,37 @@ cosTheta :: [Particle] -> Double
 cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
 cosTheta _       = -10
 
-mBLTrue :: VarFunc
-mBLTrue = runReader $ calcVar 2 invMass
+mBLTrue :: ParticleMap -> ByteString
+mBLTrue = head . runReader (calcVar 2 particlesFromTop invMass)
 
-pTTrue :: VarFunc
-pTTrue = runReader $ calcVar 2 transMomentum
+mBLAll :: ParticleMap -> [ByteString]
+mBLAll = runReader $ calcVar 2 particlesOfAllBL invMass
 
-cosThetaTrue :: VarFunc
-cosThetaTrue = runReader $ calcVar 3 cosTheta
+pTTrue :: ParticleMap -> ByteString
+pTTrue = head . runReader (calcVar 2 particlesFromTop transMomentum)
 
-calcVar :: Int -> ([Particle] -> Double) -> Reader ParticleMap ByteString
-calcVar n func = do
+pTAll :: ParticleMap -> [ByteString]
+pTAll = runReader $ calcVar 2 particlesOfAllBL transMomentum
+
+cosThetaTrue :: ParticleMap -> ByteString
+cosThetaTrue = head . runReader (calcVar 3 particlesFromTop cosTheta)
+
+cosThetaAll :: ParticleMap -> [ByteString]
+cosThetaAll = runReader $ calcVar 3 particlesOfAllBL cosTheta
+
+calcVar :: Int -> (ParticleMap -> ParticlePairs) -> ([Particle] -> Double)
+        -> Reader ParticleMap [ByteString]
+calcVar n mkpair func = do
   pm <- ask
-  return $ toFixed n $ case runReaderT (calcVar' func) pm of Just (m:_) -> m
-                                                             _          -> -1
-    where calcVar' :: ([Particle] -> Double) -> ReaderT ParticleMap Maybe [Double]
-          calcVar' f = do
-            pm' <- ask
-            let pss = particlesFromTop pm'
-            pss' <- lift $ filterM containsBL pss
-            return $ map f pss'
+  return $ map (toFixed n) $ case runReaderT (calcVar' func) pm of
+                               Just m -> m
+                               _      -> [-10]
+    where
+      calcVar' :: ([Particle] -> Double) -> ReaderT ParticleMap Maybe [Double]
+      calcVar' f = do
+        pm' <- ask
+        pss <- lift $ filterM containsBL (mkpair pm')
+        return $ map f pss
 
-missingET :: VarFunc
+missingET :: ParticleMap -> ByteString
 missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates

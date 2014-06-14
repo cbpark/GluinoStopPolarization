@@ -44,7 +44,7 @@ parseCalcSave infile outfile = do
     where
       writeHeader :: Handle -> IO ()
       writeHeader h = C.hPutStrLn h $
-                      "# " `C.append` C.intercalate ", " (Map.keys variables)
+                      "# " `C.append` C.intercalate ", " (Map.keys var)
 
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
       parseCalcSave' s h = do
@@ -58,7 +58,7 @@ parseCalcSave infile outfile = do
 printResult :: ParticleMap -> Handle -> StateT Integer IO ()
 printResult pm hdl = do
   neve <- get
-  let result = sequence (Map.elems variables) pm
+  let result = sequence (Map.elems var) pm
   liftIO $ B.hPutStrLn hdl $
          B.pack (show neve ++ ", ") `B.append` B.intercalate ", " result
 

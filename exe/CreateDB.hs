@@ -3,7 +3,7 @@
 
 module Main where
 
-import           Calculation.Variables      (variables)
+import           Calculation.Variables      (var)
 
 import           Control.Exception          (IOException, catch, finally,
                                              throwIO)
@@ -29,7 +29,7 @@ cmdoptions = Args <$> strOption ( long "input"
 sqlCommand :: FilePath -> String
 sqlCommand filename = unlines
     [ "CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
-      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (Map.keys variables)
+      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (Map.keys var)
       ++ ");"
     , ".separator \',\'"
     , ".import " ++ filename ++ " var"
