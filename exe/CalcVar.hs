@@ -9,9 +9,9 @@ import           HEP.Data.LHEF.Parser
 
 import           Control.Exception               (catch, throwIO)
 import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Trans.State       (StateT (..), get, modify)
+import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
-import qualified Data.ByteString.Char8      as B
+import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
 import qualified Data.Map                        as Map
 import           Database.HDBC
@@ -38,7 +38,7 @@ parseCalcSave infile outfile = do
   removeIfExists outfile
   conn <- prepareDB outfile
   evstr <- C.readFile infile
-  (_, ntot) <- runStateT ((parseCalcSave' . stripLHEF) evstr conn) 0
+  ntot <- execStateT ((parseCalcSave' . stripLHEF) evstr conn) 0
   disconnect conn
   C.putStrLn . C.pack $ "-- Total number of events parsed = " ++ show (ntot - 1)
   C.putStrLn . C.pack $ "-- " ++ outfile ++ " has been created."
