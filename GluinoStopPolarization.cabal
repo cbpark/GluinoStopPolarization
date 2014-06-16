@@ -72,6 +72,8 @@ executable gluinostoppol_createdb
 executable gluinostoppol_er_true
   main-is:             EratioTrue.hs
   build-depends:       base >=4.6,
+                       HDBC >=2.4,
+                       HDBC-sqlite3 >=2.3,
                        optparse-applicative >=0.9,
                        GluinoStopPolarization
   hs-source-dirs:      exe
