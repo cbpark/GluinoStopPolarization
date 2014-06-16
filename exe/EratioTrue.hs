@@ -1,12 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Main where
 
-import           Data.Maybe
+import           Interface.Database          (queryVar)
+
+import           Data.List                   (transpose)
 import qualified Data.Vector                 as V
 import qualified Data.Vector.Generic         as G
-import           Database.HDBC
-import           Database.HDBC.Sqlite3       (connectSqlite3)
 import           Options.Applicative
 import           Statistics.Sample.Histogram (histogram_)
 
@@ -22,28 +20,20 @@ cmdoptions = Args <$> some (argument str ( metavar "INPUTS"
 
 mkHist :: Args -> IO ()
 mkHist (Args infiles outfile) = do
-  vss <- mapM (query "er_true" "mbl_true > 0") infiles
-  let hists = map (mkHist' 100 0 1) vss
-  mapM_ print hists
+  vss <- mapM (queryVar "er_true" "mbl_true > 0") infiles
+  let nbin = 100
+      lower = 0
+      upper = 1
+      hists = map (V.toList . histogram_ nbin lower upper) vss
+      bins = lowerBounds nbin lower upper
+      result = bins : hists
+  mapM_ print (transpose result)
   putStrLn $ "Output file: " ++ outfile
 
-mkHist' :: Int -> Double -> Double -> V.Vector Double -> V.Vector (Double, Double)
-mkHist' nbin lower upper xs = V.zip bins hist
-    where bins = G.generate nbin step
-          step i = lower + d * fromIntegral i
+lowerBounds :: Int -> Double -> Double -> [Double]
+lowerBounds nbin lower upper = V.toList $ G.generate nbin step
+    where step i = lower + d * fromIntegral i
           d = (upper - lower) / fromIntegral nbin
-          hist = histogram_ nbin lower upper xs
-
-query :: String -> String -> FilePath -> IO (V.Vector Double)
-query var cut infile = do
-  conn <- connectSqlite3 infile
-  v <- quickQuery' conn ("SELECT " ++ var ++ " from var where " ++ cut) []
-  let rows = map convRow v
-  disconnect conn
-  return . V.fromList $ map (fromMaybe (-10)) rows
-      where convRow :: [SqlValue] -> Maybe Double
-            convRow [sqlVal] = (return . fromSql) sqlVal
-            convRow _        = Nothing
 
 main :: IO ()
 main =
