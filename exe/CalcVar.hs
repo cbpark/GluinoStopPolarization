@@ -3,11 +3,11 @@
 module Main where
 
 import           Calculation.Variables
+import           Interface.IOHelper              (removeIfExists)
 
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
 
-import           Control.Exception               (catch, throwIO)
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
@@ -17,8 +17,6 @@ import qualified Data.Map                        as Map
 import           Database.HDBC
 import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
-import           System.Directory                (removeFile)
-import           System.IO.Error                 (isDoesNotExistError)
 
 data Args = Args { input :: String, output :: String }
 
@@ -79,11 +77,6 @@ insertResult pm conn = do
                   C.unpack (C.intercalate ", " (Map.keys vm)) ++
                   ") VALUES (" ++
                   concat (replicate (length (Map.keys vm)) "?, ")
-
-removeIfExists :: FilePath -> IO ()
-removeIfExists f = removeFile f `catch` handleExists
-  where handleExists e | isDoesNotExistError e = return ()
-                       | otherwise             = throwIO e
 
 main :: IO ()
 main =

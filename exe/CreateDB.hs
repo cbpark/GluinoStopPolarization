@@ -4,16 +4,15 @@
 module Main where
 
 import           Calculation.Variables      (var)
+import           Interface.IOHelper         (removeIfExists)
 
-import           Control.Exception          (IOException, catch, finally,
-                                             throwIO)
+import           Control.Exception          (IOException, catch, finally)
 import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.Map                   as Map
 import           Options.Applicative
 import           System.Directory           (getTemporaryDirectory, removeFile)
 import           System.Exit                (ExitCode (..))
 import           System.IO
-import           System.IO.Error            (isDoesNotExistError)
 import           System.Process
 
 data Args = Args { input :: String, output :: String }
@@ -59,11 +58,6 @@ importData (Args infile outfile) = do
               C.hPutStr temph $ (C.unlines . tail . C.lines) contents
               hClose inputh
               return (tempf, temph)
-
-removeIfExists :: FilePath -> IO ()
-removeIfExists f = removeFile f `catch` handleExists
-  where handleExists e | isDoesNotExistError e = return ()
-                       | otherwise             = throwIO e
 
 main :: IO ()
 main =
