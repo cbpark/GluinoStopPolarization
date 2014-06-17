@@ -19,9 +19,11 @@ data Args = Args { input :: String, output :: String }
 
 cmdoptions :: Parser Args
 cmdoptions = Args <$> strOption ( long "input"
+                               <> short 'i'
                                <> metavar "DATA"
                                <> help "Input DATA file in csv format" ) <*>
                       strOption ( long "output"
+                               <> short 'o'
                                <> metavar "DB"
                                <> help "Output DB file to save the result" )
 

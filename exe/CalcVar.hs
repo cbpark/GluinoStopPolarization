@@ -22,9 +22,11 @@ data Args = Args { input :: String, output :: String }
 
 cmdoptions :: Parser Args
 cmdoptions = Args <$> strOption ( long "input"
+                               <> short 'i'
                                <> metavar "LHEF"
                                <> help "Input LHEF file" ) <*>
                       strOption ( long "output"
+                               <> short 'o'
                                <> metavar "DB"
                                <> help "Output DB file to save the result" )
 
