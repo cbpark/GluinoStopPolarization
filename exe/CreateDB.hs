@@ -18,10 +18,8 @@ import           System.Process
 data Args = Args { input :: String, output :: String }
 
 cmdoptions :: Parser Args
-cmdoptions = Args <$> strOption ( long "input"
-                               <> short 'i'
-                               <> metavar "DATA"
-                               <> help "Input DATA file in csv format" ) <*>
+cmdoptions = Args <$> argument str ( metavar "DATA"
+                                  <> help "Input DATA file in csv format") <*>
                       strOption ( long "output"
                                <> short 'o'
                                <> metavar "DB"
