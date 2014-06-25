@@ -22,7 +22,12 @@ data HistFill = HistFill { cutStr     :: String
                          }
 
 histData :: Map.Map String HistFill
-histData = Map.fromList [("er_true", HistFill "mbl_true > 0" 100 0 1)]
+histData = Map.fromList [ ("er_true",     HistFill "mbl_true > 0" 50 0 1)
+                        , ("er_by_m",     HistFill "mbl_true > 0" 50 0 1)
+                        , ("er_by_pt",    HistFill "mbl_true > 0" 50 0 1)
+                        , ("er_by_theta", HistFill "mbl_true > 0" 50 0 1)
+                        , ("mbl_tue",     HistFill "mbl_true > 0" 100 0 200)
+                        ]
 
 mkHist :: [FilePath] -> FilePath -> String -> IO ()
 mkHist infiles outfile var = do
@@ -58,5 +63,5 @@ mkHist' infiles var cut nbin lower upper = do
 
 lowerBounds :: Int -> Double -> Double -> [Double]
 lowerBounds nbin lower upper = V.toList $ G.generate nbin step
-    where step i = lower + d * fromIntegral i
+    where step i = lower + d * (fromIntegral i + 0.5)
           d = (upper - lower) / fromIntegral nbin
