@@ -35,8 +35,6 @@ module Calculation.Variables
 import           Calculation.ParSelector
 
 import           HEP.Data.LHEF
-import           HEP.Vector
-import           HEP.Vector.LorentzVector
 
 import           Control.Monad                     (filterM)
 import           Control.Monad.Trans.Class
@@ -44,7 +42,6 @@ import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
-import           Data.Function                     (on)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
 
