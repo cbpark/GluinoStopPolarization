@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -23,6 +24,9 @@ module Calculation.Variables
     -- * cos(theta) of b quark and lepton
     , cosThetaTrue
     , cosThetaAll
+
+    -- * Delta R of b quark and lepton
+    , deltaRTrue
 
     -- * Missing transverse momentum
     , missingET
@@ -52,9 +56,11 @@ varField = [ "er_true"
            , "er_by_m"
            , "er_by_pt"
            , "er_by_theta"
+           , "er_by_r"
            , "mbl_true"
            , "pt_true"
            , "cos_theta_true"
+           , "dr_true"
            , "met"
            ]
 
@@ -63,9 +69,11 @@ varFuncs = [ eRatioTrue
            , eRatioByM
            , eRatioByPT
            , eRatioByTheta
+           , eRatioByR
            , mBLTrue
            , pTTrue
            , cosThetaTrue
+           , deltaRTrue
            , missingET
            ]
 
@@ -76,12 +84,14 @@ varallcombField :: [C.ByteString]
 varallcombField = [ "mbl_all"
                   , "pt_all"
                   , "cos_theta_all"
+                  , "dr_all"
                   ]
 
 varallcombFuncs :: [ParticleMap -> [ByteString]]
 varallcombFuncs = [ mBLAll
                   , pTAll
                   , cosThetaAll
+                  , deltaRAll
                   ]
 
 eRatioTrue :: ParticleMap -> ByteString
@@ -95,6 +105,9 @@ eRatioByPT = runReader $ eRatioBLpair pairByPT
 
 eRatioByTheta :: ParticleMap -> ByteString
 eRatioByTheta = runReader $ eRatioBLpair pairByTheta
+
+eRatioByR :: ParticleMap -> ByteString
+eRatioByR = runReader $ eRatioBLpair pairByR
 
 eRatioBLpair :: (ParticleMap -> ParticlePairs)
              -> Reader ParticleMap ByteString
@@ -121,33 +134,26 @@ eRatioBL pss = filterM containsBL pss >>= mapM (runReaderT eRatioBL')
 data Choice = ByMin | ByMax
 data HowPair = HowPair ([Particle] -> Double) Choice
 
-pairBy :: HowPair -> ParticleMap -> ParticlePairs
-pairBy (HowPair func choice) pm =
-    let allpairs = particlesOfAllBL pm
-        pairMap = foldr (\p m -> Map.insert (func p) p m) Map.empty allpairs
-        chosenPair = case choice of ByMax -> Map.maxView pairMap
-                                    _     -> Map.minView pairMap
-    in case chosenPair of Just (pair, _) -> [pair]
-                          _              -> []
-
 pairByM :: ParticleMap -> ParticlePairs
 pairByM = pairBy (HowPair invMass ByMin)
-
-invMass :: [Particle] -> Double
-invMass = invariantMass . foldr ((.+.) . fourMomentum) zero
 
 pairByPT :: ParticleMap -> ParticlePairs
 pairByPT = pairBy (HowPair transMomentum ByMax)
 
-transMomentum :: [Particle] -> Double
-transMomentum = pT . foldr ((.+.) . fourMomentum) zero
-
 pairByTheta :: ParticleMap -> ParticlePairs
 pairByTheta = pairBy (HowPair cosTheta ByMax)
 
-cosTheta :: [Particle] -> Double
-cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
-cosTheta _       = -10
+pairByR :: ParticleMap -> ParticlePairs
+pairByR = pairBy (HowPair dR ByMin)
+
+pairBy :: HowPair -> ParticleMap -> ParticlePairs
+pairBy (HowPair func choice) pm =
+    let allpairs = particlesOfAllBL pm
+        pairMap = foldr (\p m -> Map.insert (func p) p m) Map.empty allpairs
+        chosenPair = (\case ByMax -> Map.maxView pairMap
+                            _     -> Map.minView pairMap) choice
+    in case chosenPair of Just (pair, _) -> [pair]
+                          _              -> []
 
 mBLTrue :: ParticleMap -> ByteString
 mBLTrue = head . runReader (calcVar 2 particlesFromTop invMass)
@@ -166,6 +172,12 @@ cosThetaTrue = head . runReader (calcVar 3 particlesFromTop cosTheta)
 
 cosThetaAll :: ParticleMap -> [ByteString]
 cosThetaAll = runReader $ calcVar 3 particlesOfAllBL cosTheta
+
+deltaRTrue :: ParticleMap -> ByteString
+deltaRTrue = head . runReader (calcVar 3 particlesFromTop dR)
+
+deltaRAll :: ParticleMap -> [ByteString]
+deltaRAll = runReader $ calcVar 3 particlesOfAllBL dR
 
 calcVar :: Int -> (ParticleMap -> ParticlePairs) -> ([Particle] -> Double)
         -> Reader ParticleMap [ByteString]
