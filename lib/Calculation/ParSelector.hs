@@ -64,13 +64,12 @@ particlesFromTop pm =
 
 particlesOfAllBL :: ParticleMap -> ParticlePairs
 particlesOfAllBL pm = let !fstates = finalStates pm
-                          !lep = filter (basicCutFor selectL) fstates
+                          !leps = filter (basicCutFor selectL) fstates
                           !bs = filter (basicCutFor selectB) fstates
-                      in if null lep || null bs
+                      in if (length leps /= 1) || null bs
                          then []
-                         else foldr (\x xs -> if invMass (x:lep) < 160
-                                              then (x:lep):xs
-                                              else xs) [] bs
+                         else [[lep,b] | lep <- leps, b <- bs,
+                                         invMass [lep,b] < 160 && dR [lep,b] > 0.4]
 
 containsBL :: [Particle] -> Maybe Bool
 containsBL ps = do let (totnb, totnl) = counter ps
