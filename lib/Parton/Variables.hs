@@ -122,7 +122,7 @@ eRatioBL = mapMaybe (runReaderT eRatioBL') . filter containsBL
                      eBquark <- theEnergyOf bQuark
                      return $ eLepton / (eBquark + eLepton)
 
-      theEnergyOf :: ParType -> ReaderT [Particle] Maybe Double
+      theEnergyOf :: ParticleType -> ReaderT [Particle] Maybe Double
       theEnergyOf par = do ps <- ask
                            case find (`is` par) ps of
                              Just p  -> return (energyOf p)

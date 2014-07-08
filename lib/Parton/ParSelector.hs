@@ -22,23 +22,24 @@ module Parton.ParSelector
 import           HEP.Data.LHEF
 
 import           Control.Applicative
-import           Data.Maybe          (fromMaybe)
+import           Control.Monad.Trans.Reader
+import           Data.Maybe                 (fromMaybe)
 
 type ParticlePairs = [[Particle]]
 
-topQuark :: ParType
-topQuark = [6]
+topQuark :: ParticleType
+topQuark = ParticleType [6]
 
-bQuark :: ParType
-bQuark = [5]
+bQuark :: ParticleType
+bQuark = ParticleType [5]
 
-lepton :: ParType
-lepton = [11,13]
+lepton :: ParticleType
+lepton = ParticleType [11,13]
 
-invisible :: ParType
-invisible = [12,14,1000024]
+invisible :: ParticleType
+invisible = ParticleType [12,14,1000024]
 
-data ParSelec = ParSelec { ptype  :: ParType
+data ParSelec = ParSelec { ptype  :: ParticleType
                          , ptcut  :: Double
                          , etacut :: Double }
 
@@ -55,7 +56,7 @@ basicCutFor ParSelec {..} p
 
 particlesFromTop :: ParticleMap -> ParticlePairs
 particlesFromTop pm =
-    let ps = particlesFrom topQuark pm
+    let ps = runReader (particlesFrom topQuark) pm
     in map (filter ((||) <$> basicCutFor selectB <*> basicCutFor selectL)) ps
 
 particlesOfAllBL :: ParticleMap -> ParticlePairs
@@ -64,15 +65,15 @@ particlesOfAllBL pm = let !fstates = finalStates pm
                           !bs = filter (basicCutFor selectB) fstates
                       in if (length leps /= 1) || (length bs < 3)
                          then []
-                         else [[lep,b] | lep <- leps, b <- bs,
-                                         invMass [lep,b] < 160 && fromMaybe (-1) (dR [lep,b]) > 0.4]
+                         else [ [lep,b] | lep <- leps, b <- bs,
+                                          invMass [lep,b] < 160 &&
+                                          fromMaybe (-1) (dR [lep,b]) > 0.4 ]
 
 containsBL :: [Particle] -> Bool
 containsBL ps = let (totnb, totnl) = counter ps
                 in (totnb == 1) && (totnl == 1)
     where counter :: [Particle] -> (Int, Int)
           counter = foldr (\p (nb, nl) ->
-                               let pid = abs (idOf p)
-                               in if | pid `elem` bQuark -> (nb+1, nl  )
-                                     | pid `elem` lepton -> (nb  , nl+1)
-                                     | otherwise         -> (nb  , nl  )) (0, 0)
+                               if | p `is` bQuark -> (nb+1, nl  )
+                                  | p `is` lepton -> (nb  , nl+1)
+                                  | otherwise         -> (nb  , nl  )) (0, 0)
