@@ -3,8 +3,8 @@
 
 module Main where
 
-import           Calculation.Variables      (var)
 import           Interface.IOHelper         (removeIfExists)
+import           Parton.Variables           (varParton)
 
 import           Control.Exception          (IOException, catch, finally)
 import qualified Data.ByteString.Lazy.Char8 as C
@@ -28,7 +28,7 @@ cmdoptions = Args <$> argument str ( metavar "DATA"
 sqlCommand :: FilePath -> String
 sqlCommand filename = unlines
     [ "CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
-      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (Map.keys var)
+      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (Map.keys varParton)
       ++ ");"
     , ".separator \',\'"
     , ".import " ++ filename ++ " var"

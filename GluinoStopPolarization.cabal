@@ -11,11 +11,12 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Calculation.ParSelector
-                       Calculation.Variables
-                       Interface.Database
+  exposed-modules:     Interface.Database
                        Interface.Histogram1D
                        Interface.IOHelper
+                       Jet.Variables
+                       Parton.ParSelector
+                       Parton.Variables
   build-depends:       base >=4.6,
                        bytestring >=0.10,
                        containers >=0.5,
@@ -32,7 +33,7 @@ library
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostoppol_calcvar
+executable gluinostop_calcvar
   main-is:             CalcVar.hs
   build-depends:       base >=4.6,
                        attoparsec >=0.12,
@@ -48,7 +49,7 @@ executable gluinostoppol_calcvar
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostoppol_calcraw
+executable gluinostop_calcraw
   main-is:             CalcRaw.hs
   build-depends:       base >=4.6,
                        attoparsec >=0.12,
@@ -62,7 +63,7 @@ executable gluinostoppol_calcraw
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostoppol_createdb
+executable gluinostop_createdb
   main-is:             CreateDB.hs
   build-depends:       base >=4.6,
                        bytestring >=0.10,
@@ -75,7 +76,7 @@ executable gluinostoppol_createdb
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostoppol_hist1d
+executable gluinostop_hist1d
   main-is:             Hist1D.hs
   build-depends:       base >=4.6,
                        optparse-applicative >=0.9,

@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf      #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Calculation.ParSelector
+module Parton.ParSelector
     (
       ParticlePairs
 

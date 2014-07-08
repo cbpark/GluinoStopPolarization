@@ -2,8 +2,8 @@
 
 module Main where
 
-import           Calculation.Variables
 import           Interface.IOHelper              (removeIfExists)
+import           Parton.Variables                (varParton, varallcomb)
 
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
@@ -54,7 +54,7 @@ prepareDB outfile = do
   conn <- connectSqlite3 outfile
   run conn ("CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
             concatMap (\v -> ", " ++ C.unpack v ++ " REAL")
-                      (Map.keys var) ++ ");") []
+                      (Map.keys varParton) ++ ");") []
   run conn ("CREATE TABLE varallcomb (neve INTEGER PRIMARY KEY" ++
             concatMap (\v -> ", " ++ C.unpack v ++ " TEXT")
                       (Map.keys varallcomb) ++ ");") []
@@ -64,12 +64,12 @@ prepareDB outfile = do
 insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
 insertResult pm conn = do
   neve <- get
-  let varResult = toSql neve : map toSql (sequence (Map.elems var) pm)
+  let varResult = toSql neve : map toSql (sequence (Map.elems varParton) pm)
       varcomballResult = toSql neve : map (toSql . B.intercalate ", ")
                                  (sequence (Map.elems varallcomb) pm)
   liftIO $ do
     run conn ("INSERT INTO var (neve, " ++
-              insertAll var ++ "?)") varResult
+              insertAll varParton ++ "?)") varResult
     run conn ("INSERT INTO varallcomb (neve, " ++
               insertAll varallcomb ++ "?)") varcomballResult
     commit conn

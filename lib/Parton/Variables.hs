@@ -2,9 +2,9 @@
 {-# LANGUAGE MultiWayIf        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Calculation.Variables
+module Parton.Variables
     (
-      var
+      varParton
     , varallcomb
 
     -- * Energy ratio of b quark and lepton
@@ -32,7 +32,7 @@ module Calculation.Variables
     , missingET
     ) where
 
-import           Calculation.ParSelector
+import           Parton.ParSelector
 
 import           HEP.Data.LHEF
 
@@ -45,8 +45,8 @@ import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
 
-var :: Map.Map C.ByteString (ParticleMap -> ByteString)
-var = Map.fromList $ zip varField varFuncs
+varParton :: Map.Map C.ByteString (ParticleMap -> ByteString)
+varParton = Map.fromList $ zip varField varFuncs
 
 varField :: [C.ByteString]
 varField = [ "er_true"
@@ -153,25 +153,25 @@ pairBy (HowPair func choice) pm =
                           _              -> []
 
 mBLTrue :: ParticleMap -> ByteString
-mBLTrue = head . runReader (calcVar 2 particlesFromTop invMass)
+mBLTrue = headOf . runReader (calcVar 2 particlesFromTop invMass)
 
 mBLAll :: ParticleMap -> [ByteString]
 mBLAll = runReader $ calcVar 2 particlesOfAllBL invMass
 
 pTTrue :: ParticleMap -> ByteString
-pTTrue = head . runReader (calcVar 2 particlesFromTop transMomentum)
+pTTrue = headOf . runReader (calcVar 2 particlesFromTop transMomentum)
 
 pTAll :: ParticleMap -> [ByteString]
 pTAll = runReader $ calcVar 2 particlesOfAllBL transMomentum
 
 cosThetaTrue :: ParticleMap -> ByteString
-cosThetaTrue = head . runReader (calcVar 3 particlesFromTop cosTheta)
+cosThetaTrue = headOf . runReader (calcVar 3 particlesFromTop cosTheta)
 
 cosThetaAll :: ParticleMap -> [ByteString]
 cosThetaAll = runReader $ calcVar 3 particlesOfAllBL cosTheta
 
 deltaRTrue :: ParticleMap -> ByteString
-deltaRTrue = head . runReader (calcVar 3 particlesFromTop dR)
+deltaRTrue = headOf . runReader (calcVar 3 particlesFromTop dR)
 
 deltaRAll :: ParticleMap -> [ByteString]
 deltaRAll = runReader $ calcVar 3 particlesOfAllBL dR
@@ -192,3 +192,7 @@ calcVar n mkpair func = do
 
 missingET :: ParticleMap -> ByteString
 missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates
+
+headOf :: [ByteString] -> ByteString
+headOf (x:_) = x
+headOf _     = "-10"
