@@ -16,16 +16,13 @@ module Parton.ParSelector
 
     , cosTheta
     , dR
-    , invMass
     , transMomentum
     ) where
 
 import           HEP.Data.LHEF
-import           HEP.Vector
-import           HEP.Vector.LorentzVector
 
 import           Control.Applicative
-import           Data.Function            (on)
+import           Data.Maybe          (fromMaybe)
 
 type ParticlePairs = [[Particle]]
 
@@ -53,9 +50,8 @@ selectL = ParSelec { ptype = lepton, ptcut = 25, etacut = 2.4 }
 
 basicCutFor :: ParSelec -> Particle -> Bool
 basicCutFor ParSelec {..} p
-    | p `is` ptype = pT momentum > ptcut && (abs . eta) momentum < etacut
+    | p `is` ptype = transMomentum [p] > ptcut && (abs . rapidity) p < etacut
     | otherwise    = False
-    where momentum = fourMomentum p
 
 particlesFromTop :: ParticleMap -> ParticlePairs
 particlesFromTop pm =
@@ -69,28 +65,14 @@ particlesOfAllBL pm = let !fstates = finalStates pm
                       in if (length leps /= 1) || (length bs < 3)
                          then []
                          else [[lep,b] | lep <- leps, b <- bs,
-                                         invMass [lep,b] < 160 && dR [lep,b] > 0.4]
+                                         invMass [lep,b] < 160 && fromMaybe (-1) (dR [lep,b]) > 0.4]
 
-containsBL :: [Particle] -> Maybe Bool
-containsBL ps = do let (totnb, totnl) = counter ps
-                   return $ (totnb == 1) && (totnl == 1)
+containsBL :: [Particle] -> Bool
+containsBL ps = let (totnb, totnl) = counter ps
+                in (totnb == 1) && (totnl == 1)
     where counter :: [Particle] -> (Int, Int)
           counter = foldr (\p (nb, nl) ->
                                let pid = abs (idOf p)
                                in if | pid `elem` bQuark -> (nb+1, nl  )
                                      | pid `elem` lepton -> (nb  , nl+1)
                                      | otherwise         -> (nb  , nl  )) (0, 0)
-
-cosTheta :: [Particle] -> Double
-cosTheta [p, p'] = cos $ (deltaTheta `on` fourMomentum) p p'
-cosTheta _       = -10
-
-dR :: [Particle] -> Double
-dR [p, p'] = (deltaR `on` fourMomentum) p p'
-dR _       = -10
-
-invMass :: [Particle] -> Double
-invMass = invariantMass . foldr ((.+.) . fourMomentum) zero
-
-transMomentum :: [Particle] -> Double
-transMomentum = pT . foldr ((.+.) . fourMomentum) zero

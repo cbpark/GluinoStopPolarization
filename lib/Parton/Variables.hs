@@ -36,7 +36,6 @@ import           Parton.ParSelector
 
 import           HEP.Data.LHEF
 
-import           Control.Monad                     (filterM)
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString)
@@ -44,6 +43,7 @@ import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.List                         (find)
 import qualified Data.Map                          as Map
+import           Data.Maybe                        (mapMaybe)
 
 varParton :: Map.Map C.ByteString (ParticleMap -> ByteString)
 varParton = Map.fromList $ zip varField varFuncs
@@ -110,12 +110,12 @@ eRatioBLpair :: (ParticleMap -> ParticlePairs)
              -> Reader ParticleMap ByteString
 eRatioBLpair getPair = do
   pm <- ask
-  let e = case (eRatioBL . getPair) pm of Just (r:_) -> r
-                                          _          -> -1
+  let e = case (eRatioBL . getPair) pm of (r:_) -> r
+                                          _     -> -1
   return $ toFixed 3 e
 
-eRatioBL :: ParticlePairs -> Maybe [Double]
-eRatioBL pss = filterM containsBL pss >>= mapM (runReaderT eRatioBL')
+eRatioBL :: ParticlePairs -> [Double]
+eRatioBL = mapMaybe (runReaderT eRatioBL') . filter containsBL
     where
       eRatioBL' :: ReaderT [Particle] Maybe Double
       eRatioBL' = do eLepton <- theEnergyOf lepton
@@ -129,13 +129,13 @@ eRatioBL pss = filterM containsBL pss >>= mapM (runReaderT eRatioBL')
                              _       -> lift Nothing
 
 data Choice = ByMin | ByMax
-data HowPair = HowPair ([Particle] -> Double) Choice
+data HowPair = HowPair ([Particle] -> Maybe Double) Choice
 
 pairByM :: ParticleMap -> ParticlePairs
-pairByM = pairBy (HowPair invMass ByMin)
+pairByM = pairBy (HowPair (Just . invMass) ByMin)
 
 pairByPT :: ParticleMap -> ParticlePairs
-pairByPT = pairBy (HowPair transMomentum ByMax)
+pairByPT = pairBy (HowPair (Just . transMomentum) ByMax)
 
 pairByTheta :: ParticleMap -> ParticlePairs
 pairByTheta = pairBy (HowPair cosTheta ByMax)
@@ -153,16 +153,16 @@ pairBy (HowPair func choice) pm =
                           _              -> []
 
 mBLTrue :: ParticleMap -> ByteString
-mBLTrue = headOf . runReader (calcVar 2 particlesFromTop invMass)
+mBLTrue = headOf . runReader (calcVar 2 particlesFromTop (Just . invMass))
 
 mBLAll :: ParticleMap -> [ByteString]
-mBLAll = runReader $ calcVar 2 particlesOfAllBL invMass
+mBLAll = runReader $ calcVar 2 particlesOfAllBL (Just . invMass)
 
 pTTrue :: ParticleMap -> ByteString
-pTTrue = headOf . runReader (calcVar 2 particlesFromTop transMomentum)
+pTTrue = headOf . runReader (calcVar 2 particlesFromTop (Just . transMomentum))
 
 pTAll :: ParticleMap -> [ByteString]
-pTAll = runReader $ calcVar 2 particlesOfAllBL transMomentum
+pTAll = runReader $ calcVar 2 particlesOfAllBL (Just . transMomentum)
 
 cosThetaTrue :: ParticleMap -> ByteString
 cosThetaTrue = headOf . runReader (calcVar 3 particlesFromTop cosTheta)
@@ -176,19 +176,17 @@ deltaRTrue = headOf . runReader (calcVar 3 particlesFromTop dR)
 deltaRAll :: ParticleMap -> [ByteString]
 deltaRAll = runReader $ calcVar 3 particlesOfAllBL dR
 
-calcVar :: Int -> (ParticleMap -> ParticlePairs) -> ([Particle] -> Double)
+calcVar :: Int -> (ParticleMap -> ParticlePairs) -> ([Particle] -> Maybe Double)
         -> Reader ParticleMap [ByteString]
 calcVar n mkpair func = do
   pm <- ask
-  return $ map (toFixed n) $ case runReaderT (calcVar' func) pm of
-                               Just m -> m
-                               _      -> [-10]
+  return $ map (toFixed n) $ runReader (calcVar' func) pm
     where
-      calcVar' :: ([Particle] -> Double) -> ReaderT ParticleMap Maybe [Double]
+      calcVar' :: ([Particle] -> Maybe Double) -> Reader ParticleMap [Double]
       calcVar' f = do
         pm' <- ask
-        pss <- lift $ filterM containsBL (mkpair pm')
-        return $ map f pss
+        let pss = filter containsBL (mkpair pm')
+        return $ mapMaybe f pss
 
 missingET :: ParticleMap -> ByteString
 missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates
