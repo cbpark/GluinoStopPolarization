@@ -46,10 +46,10 @@ data ParSelec = ParSelec { ptype  :: ParType
                          , etacut :: Double }
 
 selectB :: ParSelec
-selectB = ParSelec { ptype = bQuark, ptcut = 0, etacut = 10 }
+selectB = ParSelec { ptype = bQuark, ptcut = 30, etacut = 2.5 }
 
 selectL :: ParSelec
-selectL = ParSelec { ptype = lepton, ptcut = 0, etacut = 10 }
+selectL = ParSelec { ptype = lepton, ptcut = 25, etacut = 2.4 }
 
 basicCutFor :: ParSelec -> Particle -> Bool
 basicCutFor ParSelec {..} p
@@ -66,7 +66,7 @@ particlesOfAllBL :: ParticleMap -> ParticlePairs
 particlesOfAllBL pm = let !fstates = finalStates pm
                           !leps = filter (basicCutFor selectL) fstates
                           !bs = filter (basicCutFor selectB) fstates
-                      in if (length leps /= 1) || null bs
+                      in if (length leps /= 1) || (length bs < 3)
                          then []
                          else [[lep,b] | lep <- leps, b <- bs,
                                          invMass [lep,b] < 160 && dR [lep,b] > 0.4]
