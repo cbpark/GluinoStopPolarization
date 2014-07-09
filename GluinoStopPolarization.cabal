@@ -17,6 +17,7 @@ library
                        Jet.Variables
                        Parton.Variables
   other-modules:       Object.Particles
+                       Object.Selection
   build-depends:       base >=4.6,
                        bytestring >=0.10,
                        containers >=0.5,

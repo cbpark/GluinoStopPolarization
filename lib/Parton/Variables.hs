@@ -33,6 +33,7 @@ module Parton.Variables
     ) where
 
 import           Object.Particles
+import           Object.Selection
 
 import           HEP.Data.LHEF
 
