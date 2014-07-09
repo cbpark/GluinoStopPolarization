@@ -5,7 +5,6 @@ module Jet.Selection where
 import           Object.Particles
 
 import           HEP.Data.LHEF
-import           HEP.Vector.LorentzVector   (deltaR)
 
 import           Control.Monad              (liftM)
 import           Control.Monad.Trans.Reader
@@ -28,19 +27,19 @@ selectPars ptype cut = liftM (map fourMomentum .
     where ptEtaCutFor p PtEtaCut { .. } =
               transMomentum [p] > ptcut && (abs . rapidity) p < etacut
 
-selectM :: Reader ParticleMap Double
-selectM = liftM (transMomentum . filter (`is` invisible)) finalStates
+selectM :: Reader ParticleMap TwoMomentum
+selectM = liftM (twoMomentum . head . filter (`is` invisible)) finalStates
 
 finalObjs :: Reader ParticleMap ParObjs
 finalObjs = do
   jets  <- selectJ
   bjets <- selectB
   leps  <- liftM (lepJetIsol (jets ++ bjets)) selectL
-  met   <- selectM
-  return ParObjs { isoLep = leps
-                 , jet    = jets
-                 , bjet   = bjets
-                 , met    = met
+  mpt   <- selectM
+  return ParObjs { isoLep    = leps
+                 , jet       = jets
+                 , bjet      = bjets
+                 , missingPt = mpt
                  }
 
 -- | Resolves overlaps between jets and leptons.

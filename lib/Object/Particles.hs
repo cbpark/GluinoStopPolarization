@@ -12,14 +12,11 @@ module Object.Particles
     ) where
 
 import           HEP.Data.LHEF
-import           HEP.Vector.LorentzVector (LorentzVector (..))
 
-type FourMomentum = LorentzVector Double
-
-data ParObjs = ParObjs { isoLep :: [FourMomentum]
-                       , jet    :: [FourMomentum]
-                       , bjet   :: [FourMomentum]
-                       , met    :: Double
+data ParObjs = ParObjs { isoLep    :: [FourMomentum]
+                       , jet       :: [FourMomentum]
+                       , bjet      :: [FourMomentum]
+                       , missingPt :: TwoMomentum
                        } deriving Show
 
 type ParticlePairs = [[Particle]]
