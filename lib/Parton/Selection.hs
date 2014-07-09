@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf      #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Object.Selection
+module Parton.Selection
     (
       particlesFromTop
     , particlesOfAllBL
@@ -38,7 +38,7 @@ particlesFromTop pm =
     in map (filter ((||) <$> basicCutFor selectB <*> basicCutFor selectL)) ps
 
 particlesOfAllBL :: ParticleMap -> ParticlePairs
-particlesOfAllBL pm = let !fstates = finalStates pm
+particlesOfAllBL pm = let !fstates = runReader finalStates pm
                           !leps = filter (basicCutFor selectL) fstates
                           !bs = filter (basicCutFor selectB) fstates
                       in if (length leps /= 1) || (length bs < 3)

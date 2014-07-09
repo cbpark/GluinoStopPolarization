@@ -3,19 +3,19 @@
 module Main where
 
 import           Interface.IOHelper              (removeIfExists)
-import           Parton.Variables                (var)
+import           Jet.Selection
 
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
 
 import           Control.Monad.IO.Class          (liftIO)
+import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
-import qualified Data.ByteString.Char8           as B
+-- import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
-import qualified Data.Map                        as Map
 import           Options.Applicative
-import           System.IO                       (Handle, IOMode (..), withFile)
+import           System.IO
 
 data Args = Args { input :: String, output :: String }
 
@@ -36,17 +36,11 @@ parseCalcSave :: FilePath -> FilePath -> IO ()
 parseCalcSave infile outfile = do
   removeIfExists outfile
   evstr <- C.readFile infile
-  ntot <- withFile outfile WriteMode $ \hdl -> do
-                                 writeHeader hdl
-                                 execStateT ((parseCalcSave' . stripLHEF)
-                                             evstr hdl) 0
+
+  ntot <- execStateT ((parseCalcSave' . stripLHEF) evstr stdout) 0
+
   C.putStrLn . C.pack $ "Total number of events parsed = " ++ show (ntot - 1)
     where
-      writeHeader :: Handle -> IO ()
-      writeHeader h = C.hPutStrLn h $
-                      "# " `C.append` C.intercalate ", "
-                      (Map.keys var)
-
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
       parseCalcSave' s h = do
         modify (+1)
@@ -57,11 +51,9 @@ parseCalcSave infile outfile = do
                                   parseCalcSave' evRemained h
 
 printResult :: ParticleMap -> Handle -> StateT Integer IO ()
-printResult pm hdl = do
-  neve <- get
-  let result = sequence (Map.elems var) pm
-  liftIO $ B.hPutStrLn hdl $
-         B.pack (show neve ++ ", ") `B.append` B.intercalate ", " result
+printResult pm _ = do
+  let result = runReader finalObjs pm
+  liftIO $ print result
 
 main :: IO ()
 main =
@@ -70,4 +62,4 @@ main =
                    ( fullDesc
                   <> progDesc ( "Calculate collider variables for top quarks" ++
                                 " in the gluino decays" )
-                  <> header "GluinoStop_calc - calculate collider variables" )
+                  <> header "GluinoStop_calctest - calculate collider variables" )

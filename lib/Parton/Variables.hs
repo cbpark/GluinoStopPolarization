@@ -4,7 +4,7 @@
 
 module Parton.Variables
     (
-      varParton
+      var
     , varallcomb
 
     -- * Energy ratio of b quark and lepton
@@ -33,7 +33,7 @@ module Parton.Variables
     ) where
 
 import           Object.Particles
-import           Object.Selection
+import           Parton.Selection
 
 import           HEP.Data.LHEF
 
@@ -46,8 +46,8 @@ import           Data.List                         (find)
 import qualified Data.Map                          as Map
 import           Data.Maybe                        (mapMaybe)
 
-varParton :: Map.Map C.ByteString (ParticleMap -> ByteString)
-varParton = Map.fromList $ zip varField varFuncs
+var :: Map.Map C.ByteString (ParticleMap -> ByteString)
+var = Map.fromList $ zip varField varFuncs
 
 varField :: [C.ByteString]
 varField = [ "er_true"
@@ -190,7 +190,8 @@ calcVar n mkpair func = do
         return $ mapMaybe f pss
 
 missingET :: ParticleMap -> ByteString
-missingET = toFixed 2 . transMomentum . filter (`is` invisible) . finalStates
+missingET = toFixed 2 .
+            transMomentum . filter (`is` invisible) . runReader finalStates
 
 headOf :: [ByteString] -> ByteString
 headOf (x:_) = x
