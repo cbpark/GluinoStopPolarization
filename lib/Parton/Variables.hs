@@ -32,7 +32,7 @@ module Parton.Variables
     , missingET
     ) where
 
-import           Parton.ParSelector
+import           Object.Particles
 
 import           HEP.Data.LHEF
 

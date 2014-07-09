@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf      #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Parton.ParSelector
+module Object.Particles
     (
       ParticlePairs
 
@@ -13,10 +13,6 @@ module Parton.ParSelector
     , particlesFromTop
     , particlesOfAllBL
     , containsBL
-
-    , cosTheta
-    , dR
-    , transMomentum
     ) where
 
 import           HEP.Data.LHEF

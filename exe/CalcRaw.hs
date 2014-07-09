@@ -3,8 +3,8 @@
 module Main where
 
 import           Interface.IOHelper              (removeIfExists)
+import           Jet.Variables                   (varJet)
 import           Parton.Variables                (varParton)
-import           Jet.Variables (varJet)
 
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
