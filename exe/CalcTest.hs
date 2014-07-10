@@ -3,7 +3,7 @@
 module Main where
 
 import           Interface.IOHelper              (removeIfExists)
-import           Jet.Selection
+import           Jet.Variables
 
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
@@ -52,7 +52,7 @@ parseCalcSave infile outfile = do
 
 printResult :: ParticleMap -> Handle -> StateT Integer IO ()
 printResult pm _ = do
-  let result = runReader finalObjs pm
+  let result = runReader calcVar pm
   liftIO $ print result
 
 main :: IO ()

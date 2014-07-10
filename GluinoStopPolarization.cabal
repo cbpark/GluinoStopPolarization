@@ -14,10 +14,10 @@ library
   exposed-modules:     Interface.Database
                        Interface.Histogram1D
                        Interface.IOHelper
-                       Jet.Selection
                        Jet.Variables
                        Parton.Variables
-  other-modules:        Object.Particles
+  other-modules:       Jet.Selection
+                       Object.Particles
                        Parton.Selection
   build-depends:       base >=4.6,
                        bytestring >=0.10,
