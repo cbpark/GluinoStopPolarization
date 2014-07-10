@@ -1,7 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
-module Interface.Histogram1D (mkHist) where
+module Interface.Histogram1D
+    (
+      HistFill (..)
+    , mkHist
+    ) where
 
 import           Interface.Database                (queryVar)
 import           Interface.IOHelper                (removeIfExists)
@@ -21,26 +25,14 @@ data HistFill = HistFill { cutStr     :: String
                          , upperBound :: Double
                          }
 
-histData :: Map.Map String HistFill
-histData = Map.fromList [ ("er_true",       HistFill "er_true > 0 AND dr_true > 0.4" 50 0 1)
-                        , ("er_by_m",       HistFill "er_by_m > 0" 50 0 1)
-                        , ("er_by_pt",      HistFill "er_by_pt > 0" 50 0 1)
-                        , ("er_by_theta",   HistFill "er_by_theta > 0" 50 0 1)
-                        , ("er_by_r",       HistFill "er_by_r > 0" 50 0 1)
-                        , ("mbl_true",      HistFill "mbl_true > 0" 100 0 200)
-                        , ("pt_true",       HistFill "pt_true > 0" 200 0 2000)
-                        , ("cos_theta_true",HistFill "mbl_true > 0" 200 (-10) 10)
-                        , ("dr_true",       HistFill "dr_true > 0" 100 0 10)
-                        ]
-
-mkHist :: [FilePath] -> FilePath -> String -> IO ()
-mkHist infiles outfile var = do
+mkHist :: [FilePath] -> FilePath -> String -> Map.Map String HistFill -> IO ()
+mkHist infiles outfile var hist = do
   removeIfExists outfile
 
-  case Map.lookup var histData of
+  case Map.lookup var hist of
     Nothing              -> do putStrLn $ var ++ " is not known."
                                putStrLn $ "Possible variables: " ++
-                                        intercalate ", " (Map.keys histData)
+                                        intercalate ", " (Map.keys hist)
     Just (HistFill {..}) -> do
       result <- mkHist' infiles var cutStr nBin lowerBound upperBound
       withFile outfile WriteMode $ \hdl -> do

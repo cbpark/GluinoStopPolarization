@@ -1,6 +1,6 @@
 module Main where
 
-import           Interface.Histogram1D (mkHist)
+import           Parton.Hist         (histData, mkHist)
 
 import           Options.Applicative
 
@@ -19,7 +19,7 @@ cmdoptions = Args <$> some (argument str ( metavar "INPUTS"
                                <> help "Output data file to save the result" )
 
 saveHist :: Args -> IO ()
-saveHist (Args infiles variable outfile) = mkHist infiles outfile variable
+saveHist (Args infiles variable outfile) = mkHist infiles outfile variable histData
 
 main :: IO ()
 main =

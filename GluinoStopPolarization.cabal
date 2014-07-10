@@ -12,11 +12,12 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Interface.Database
-                       Interface.Histogram1D
                        Interface.IOHelper
                        Jet.Variables
+                       Parton.Hist
                        Parton.Variables
-  other-modules:       Jet.Selection
+  other-modules:       Interface.Histogram1D
+                       Jet.Selection
                        Object.Particles
                        Parton.Selection
   build-depends:       base >=4.6,
@@ -34,7 +35,7 @@ library
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostop_calcvar
+executable gluinostop_calcvar_parton
   main-is:             CalcVar.hs
   build-depends:       base >=4.6,
                        attoparsec >=0.12,
@@ -46,11 +47,11 @@ executable gluinostop_calcvar
                        transformers >=0.4,
                        lhef-tools >=0.1,
                        GluinoStopPolarization
-  hs-source-dirs:      exe
+  hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostop_calcraw
+executable gluinostop_calcraw_parton
   main-is:             CalcRaw.hs
   build-depends:       base >=4.6,
                        attoparsec >=0.12,
@@ -60,11 +61,11 @@ executable gluinostop_calcraw
                        transformers >=0.4,
                        lhef-tools >=0.1,
                        GluinoStopPolarization
-  hs-source-dirs:      exe
+  hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostop_createdb
+executable gluinostop_createdb_parton
   main-is:             CreateDB.hs
   build-depends:       base >=4.6,
                        bytestring >=0.10,
@@ -73,16 +74,16 @@ executable gluinostop_createdb
                        optparse-applicative >=0.9,
                        process >=1.2,
                        GluinoStopPolarization
-  hs-source-dirs:      exe
+  hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
-executable gluinostop_hist1d
+executable gluinostop_hist1d_parton
   main-is:             Hist1D.hs
   build-depends:       base >=4.6,
                        optparse-applicative >=0.9,
                        GluinoStopPolarization
-  hs-source-dirs:      exe
+  hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
