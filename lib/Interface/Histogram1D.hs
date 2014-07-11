@@ -26,13 +26,13 @@ data HistFill = HistFill { cutStr     :: String
                          }
 
 mkHist :: [FilePath] -> FilePath -> String -> Map.Map String HistFill -> IO ()
-mkHist infiles outfile var hist = do
+mkHist infiles outfile var histf = do
   removeIfExists outfile
 
-  case Map.lookup var hist of
+  case Map.lookup var histf of
     Nothing              -> do putStrLn $ var ++ " is not known."
                                putStrLn $ "Possible variables: " ++
-                                        intercalate ", " (Map.keys hist)
+                                        intercalate ", " (Map.keys histf)
     Just (HistFill {..}) -> do
       result <- mkHist' infiles var cutStr nBin lowerBound upperBound
       withFile outfile WriteMode $ \hdl -> do

@@ -14,7 +14,7 @@ import           Data.ByteString.Char8             (ByteString, pack)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
 import qualified Data.Map                          as Map
-import           Data.Maybe                        (fromMaybe)
+import           Data.Maybe                        (fromMaybe, fromJust)
 
 type JetLevelResult = Map.Map C.ByteString ByteString
 
@@ -31,15 +31,19 @@ calcVar = do
       meff = met + hT
       mT = fromMaybe (-1) (transMassLep fobj)
       pTj1 = if null alljet then -1 else maximum (map transMomentumOne alljet)
-  return $ Map.fromList [ ("nl",   (pack . show) nl)
-                        , ("nb",   (pack . show) nb)
-                        , ("ntau", (pack . show) ntau)
-                        , ("nj",   (pack . show) nj)
-                        , ("met",  toFixed 2 met)
-                        , ("HT",   toFixed 2 hT)
-                        , ("meff", toFixed 2 meff)
-                        , ("mT",   toFixed 2 mT)
-                        , ("pTj1", toFixed 2 pTj1)
+      mbl_by_theta = mBL fobj
+      er_by_theta = eRatioBL fobj
+  return $ Map.fromList [ ("nl",          (pack . show) nl)
+                        , ("nb",          (pack . show) nb)
+                        , ("ntau",        (pack . show) ntau)
+                        , ("nj",          (pack . show) nj)
+                        , ("met",         toFixed 2 met)
+                        , ("HT",          toFixed 2 hT)
+                        , ("meff",        toFixed 2 meff)
+                        , ("mT",          toFixed 2 mT)
+                        , ("pTj1",        toFixed 2 pTj1)
+                        , ("m_bl_theta",  toFixed 2 mbl_by_theta)
+                        , ("er_by_theta", toFixed 3 er_by_theta)
                         ]
 
 hTinc :: ParObjs -> Double
@@ -51,3 +55,23 @@ transMassLep :: ParObjs -> Maybe Double
 transMassLep ParObjs { .. }
     | null isoLep = Nothing
     | otherwise   = Just $ transMassOne (head isoLep) missingPt
+
+mBL :: ParObjs -> Double
+mBL ParObjs { .. } =
+    case (Map.maxView . Map.fromList) [(fromJust (cosTheta [b,l]), invMass [b,l])
+                                       | b <- bjet, l <- isoLep] of
+      Just (mbl, _) -> mbl
+      Nothing       -> -1
+
+eRatioBL :: ParObjs -> Double
+eRatioBL ParObjs { .. } =
+    let blpairs = [[b,l] | b <- bjet, l <- isoLep, invMass [b,l] < 160]
+        blWithTheta = foldr (\ps m -> Map.insert
+                                      ((fromJust . cosTheta) ps)
+                                      (fromMaybe (-1) $ eRatioBL' ps) m)
+                      Map.empty blpairs
+    in case Map.maxView blWithTheta of Just (er, _) -> er
+                                       _            -> -1
+        where eRatioBL' [b,l] = let (eB, eL) = (energyOf b, energyOf l)
+                                in Just $ eL / (eB + eL)
+              eRatioBL' _     = Nothing
