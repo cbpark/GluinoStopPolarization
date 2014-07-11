@@ -1,65 +1,77 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import           Interface.IOHelper              (removeIfExists)
-import           Jet.Variables
+import           Jet.Variables                   (calcVar)
 
 import           HEP.Data.LHEF
 import           HEP.Data.LHEF.Parser
 
+import           Control.Monad                   (when)
 import           Control.Monad.IO.Class          (liftIO)
-import           Control.Monad.Trans.Reader
+import           Control.Monad.Trans.Reader      (runReader)
 import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
--- import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
+import qualified Data.Map                        as Map
+import           Database.HDBC
+import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
-import           System.IO
 
 data Args = Args { input :: String, output :: String }
-
-data EventType = Parton | Jet deriving Eq
 
 cmdoptions :: Parser Args
 cmdoptions = Args <$> argument str ( metavar "LHEF"
                                   <> help "Input LHEF file") <*>
                       strOption ( long "output"
                                <> short 'o'
-                               <> metavar "OUTPUT"
-                               <> help "Output file to save the result" )
+                               <> metavar "DB"
+                               <> help "Output DB file to save the result" )
 
 calcAndSave :: Args -> IO ()
-calcAndSave (Args infile outfile) = parseCalcSave infile outfile
+calcAndSave (Args infile outfile) = infile `parseCalcSave` outfile
 
 parseCalcSave :: FilePath -> FilePath -> IO ()
 parseCalcSave infile outfile = do
   removeIfExists outfile
+  conn <- connectSqlite3 outfile
   evstr <- C.readFile infile
+  ntot <- execStateT ((parseCalcSave' . stripLHEF) evstr conn) 0
+  disconnect conn
+  C.putStrLn . C.pack $ "-- Total number of events parsed = " ++ show (ntot - 1)
+  C.putStrLn . C.pack $ "-- " ++ outfile ++ " has been created."
+      where
+        parseCalcSave' :: C.ByteString -> Connection -> StateT Integer IO ()
+        parseCalcSave' s c = do
+          modify (+1)
+          case parse parseEvent s of Fail r _ _ -> liftIO $ C.putStr r
+                                     Done evRemained evParsed -> do
+                                       insertResult (snd evParsed) c
+                                       parseCalcSave' evRemained c
 
-  ntot <- execStateT ((parseCalcSave' . stripLHEF) evstr stdout) 0
-
-  C.putStrLn . C.pack $ "Total number of events parsed = " ++ show (ntot - 1)
-    where
-      parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
-      parseCalcSave' s h = do
-        modify (+1)
-        case parse parseEvent s of
-          Fail r _ _               -> liftIO $ C.putStr r
-          Done evRemained evParsed -> do
-                                  printResult (snd evParsed) h
-                                  parseCalcSave' evRemained h
-
-printResult :: ParticleMap -> Handle -> StateT Integer IO ()
-printResult pm _ = do
-  let result = runReader calcVar pm
-  liftIO $ print result
+insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
+insertResult pm conn = do
+  let !result = runReader calcVar pm
+  neve <- get
+  when (neve == 1) $ liftIO (prepareDB result)
+  liftIO $ do
+    run conn ("INSERT INTO var (" ++
+              C.unpack (C.intercalate ", " (Map.keys result)) ++
+              ") VALUES (" ++ concat (replicate (Map.size result - 1) "?, ") ++
+              "?)") $ map toSql (Map.elems result)
+    commit conn
+      where prepareDB r = do run conn ("CREATE TABLE var (neve " ++
+                                       "INTEGER PRIMARY KEY AUTOINCREMENT" ++
+                                       concatMap (\v -> ", " ++ C.unpack v ++ " REAL")
+                                       (Map.keys r) ++ ");") []
+                             commit conn
 
 main :: IO ()
-main =
-  execParser opts >>= calcAndSave
-      where opts = info (helper <*> cmdoptions)
-                   ( fullDesc
-                  <> progDesc ( "Calculate collider variables for top quarks" ++
-                                " in the gluino decays" )
-                  <> header "GluinoStop_calctest - calculate collider variables" )
+main = execParser opts >>= calcAndSave
+    where opts = info (helper <*> cmdoptions)
+                 ( fullDesc
+                <> progDesc ( "Calculate collider variables for top quarks" ++
+                              " in the gluino decays" )
+                <> header "GluinoStop_calcvar - calculate collider variables" )

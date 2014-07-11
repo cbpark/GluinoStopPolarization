@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main where
@@ -64,9 +65,9 @@ prepareDB outfile = do
 insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
 insertResult pm conn = do
   neve <- get
-  let varResult = toSql neve : map toSql (sequence (Map.elems var) pm)
-      varcomballResult = toSql neve : map (toSql . B.intercalate ", ")
-                                 (sequence (Map.elems varallcomb) pm)
+  let !varResult = toSql neve : map toSql (sequence (Map.elems var) pm)
+      !varcomballResult = toSql neve : map (toSql . B.intercalate ", ")
+                          (sequence (Map.elems varallcomb) pm)
   liftIO $ do
     run conn ("INSERT INTO var (neve, " ++
               insertAll var ++ "?)") varResult
@@ -79,10 +80,9 @@ insertResult pm conn = do
                   concat (replicate (length (Map.keys vm)) "?, ")
 
 main :: IO ()
-main =
-    execParser opts >>= calcAndSave
-        where opts = info (helper <*> cmdoptions)
-                   ( fullDesc
-                  <> progDesc ( "Calculate collider variables for top quarks" ++
-                                " in the gluino decays" )
-                  <> header "GluinoStop_calc - calculate collider variables" )
+main = execParser opts >>= calcAndSave
+    where opts = info (helper <*> cmdoptions)
+                 ( fullDesc
+                <> progDesc ( "Calculate collider variables for top quarks" ++
+                              " in the gluino decays" )
+                <> header "GluinoStop_calc - calculate collider variables" )

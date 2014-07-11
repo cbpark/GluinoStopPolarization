@@ -93,6 +93,8 @@ executable gluinostop_calcvar_jet
                        attoparsec >=0.12,
                        bytestring >=0.10,
                        containers >=0.5,
+                       HDBC >=2.4,
+                       HDBC-sqlite3 >=2.3,
                        optparse-applicative >=0.9,
                        transformers >=0.4,
                        lhef-tools >=0.1,
