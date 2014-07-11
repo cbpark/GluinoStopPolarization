@@ -19,6 +19,7 @@ import qualified Data.Map                        as Map
 import           Database.HDBC
 import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
+import           System.FilePath                 (takeBaseName)
 
 data Args = Args { input :: String, output :: String }
 
@@ -48,22 +49,23 @@ parseCalcSave infile outfile = do
           modify (+1)
           case parse parseEvent s of Fail r _ _ -> liftIO $ C.putStr r
                                      Done evRemained evParsed -> do
-                                       insertResult (snd evParsed) c
+                                       insertResult (snd evParsed) c infile
                                        parseCalcSave' evRemained c
 
-insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
-insertResult pm conn = do
+insertResult :: ParticleMap -> Connection -> FilePath -> StateT Integer IO ()
+insertResult pm conn infile = do
   let !result = runReader calcVar pm
   neve <- get
   when (neve == 1) $ liftIO (prepareDB result)
   liftIO $ do
-    run conn ("INSERT INTO var (" ++
+    run conn ("INSERT INTO var (neve, " ++
               C.unpack (C.intercalate ", " (Map.keys result)) ++
-              ") VALUES (" ++ concat (replicate (Map.size result - 1) "?, ") ++
-              "?)") $ map toSql (Map.elems result)
+              ") VALUES (" ++ concat (replicate (Map.size result) "?, ") ++ "?)") $
+           toSql (takeBaseName infile ++ "-" ++ show neve) :
+           map toSql (Map.elems result)
     commit conn
       where prepareDB r = do run conn ("CREATE TABLE var (neve " ++
-                                       "INTEGER PRIMARY KEY AUTOINCREMENT" ++
+                                       "TEXT PRIMARY KEY" ++
                                        concatMap (\v -> ", " ++ C.unpack v ++ " REAL")
                                        (Map.keys r) ++ ");") []
                              commit conn
