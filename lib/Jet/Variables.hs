@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 
@@ -14,14 +15,14 @@ import           Data.ByteString.Char8             (ByteString, pack)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
 import qualified Data.Map                          as Map
-import           Data.Maybe                        (fromMaybe, fromJust)
+import           Data.Maybe                        (fromJust, fromMaybe)
 
 type JetLevelResult = Map.Map C.ByteString ByteString
 
 calcVar :: Reader ParticleMap JetLevelResult
 calcVar = do
-  fobj <- finalObjs
-  let alljet = (++) <$> jet <*> bjet $ fobj
+  !fobj <- finalObjs
+  let !alljet = (++) <$> jet <*> bjet $ fobj
       (nl, nb, ntau) = (,,) <$>
                        length . isoLep <*> length . bjet <*> length . taujet $
                        fobj
@@ -65,13 +66,9 @@ mBL ParObjs { .. } =
 
 eRatioBL :: ParObjs -> Double
 eRatioBL ParObjs { .. } =
-    let blpairs = [[b,l] | b <- bjet, l <- isoLep, invMass [b,l] < 160]
-        blWithTheta = foldr (\ps m -> Map.insert
-                                      ((fromJust . cosTheta) ps)
-                                      (fromMaybe (-1) $ eRatioBL' ps) m)
-                      Map.empty blpairs
-    in case Map.maxView blWithTheta of Just (er, _) -> er
-                                       _            -> -1
-        where eRatioBL' [b,l] = let (eB, eL) = (energyOf b, energyOf l)
-                                in Just $ eL / (eB + eL)
-              eRatioBL' _     = Nothing
+    case (Map.maxView . Map.fromList)
+             [(fromJust (cosTheta [b,l]),
+               let (eB, eL) = (energyOf b, energyOf l) in eL / (eB + eL))
+              | b <- bjet, l <- isoLep, invMass [b,l] < 160] of
+      Just (er, _) -> er
+      _            -> -1
