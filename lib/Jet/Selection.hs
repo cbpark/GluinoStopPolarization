@@ -51,6 +51,6 @@ finalObjs = do
 lepJetIsol :: [Particle] -- ^Jets
            -> [Particle] -- ^Lepton candidates
            -> [Particle]
-lepJetIsol jets leps | null leps || null jets = []
+lepJetIsol jets leps | null leps || null jets = leps
                      | otherwise              = filter (`isolated` jets) leps
                      where isolated l = all (\j -> fromJust (dR [l,j]) > 0.4)
