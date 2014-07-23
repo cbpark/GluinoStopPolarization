@@ -69,6 +69,6 @@ eRatioBL ParObjs { .. } =
     case (Map.maxView . Map.fromList)
              [(fromJust (cosTheta [b,l]),
                let (eB, eL) = (energyOf b, energyOf l) in eL / (eB + eL))
-              | b <- bjet, l <- isoLep, invMass [b,l] < 160] of
+              | b <- bjet, l <- isoLep, invMass [b,l] < 165] of
       Just (er, _) -> er
       _            -> -1

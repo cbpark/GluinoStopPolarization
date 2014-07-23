@@ -13,6 +13,7 @@ cabal-version:       >=1.10
 library
   exposed-modules:     Interface.Database
                        Interface.IOHelper
+                       Jet.Hist
                        Jet.Variables
                        Parton.Hist
                        Parton.Variables
@@ -99,6 +100,15 @@ executable gluinostop_calcvar_jet
                        optparse-applicative >=0.9,
                        transformers >=0.4,
                        lhef-tools >=0.1,
+                       GluinoStopPolarization
+  hs-source-dirs:      exe/Jet
+  default-language:    Haskell2010
+  ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
+
+executable gluinostop_hist1d_jet
+  main-is:             Hist1D.hs
+  build-depends:       base >=4.6,
+                       optparse-applicative >=0.9,
                        GluinoStopPolarization
   hs-source-dirs:      exe/Jet
   default-language:    Haskell2010
