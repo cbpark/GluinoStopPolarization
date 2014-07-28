@@ -49,8 +49,8 @@ calcVar = do
 
 hTinc :: ParObjs -> Double
 hTinc ParObjs { .. } =
-    sum (filter (>30) (map transMomentumOne (jet ++ bjet))) +
-            (if null isoLep then 0 else (transMomentumOne . head) isoLep)
+    (sum . filter (>30) . map transMomentumOne) (jet ++ bjet) +
+    (sum . filter (>20) . map transMomentumOne) isoLep
 
 transMassLep :: ParObjs -> Maybe Double
 transMassLep ParObjs { .. }
