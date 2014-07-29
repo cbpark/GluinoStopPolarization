@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Jet.Selection where
@@ -13,16 +14,16 @@ import           Data.Maybe                 (fromJust)
 data PtEtaCut = PtEtaCut { ptcut :: Double, etacut :: Double }
 
 selectJ :: Reader ParticleMap [Particle]
-selectJ = selectPars quarkJet (PtEtaCut 20 2.5)
+selectJ = selectPars quarkJet (PtEtaCut 20 2.8)
 
 selectB :: Reader ParticleMap [Particle]
-selectB = selectPars bQuark (PtEtaCut 30 2.5)
+selectB = selectPars bQuark (PtEtaCut 20 2.8)
 
 selectL :: Reader ParticleMap [Particle]
-selectL = selectPars lepton (PtEtaCut 25 2.4)
+selectL = selectPars lepton (PtEtaCut 20 2.5)
 
 selectT :: Reader ParticleMap [Particle]
-selectT = selectPars tau (PtEtaCut 20 2.4)
+selectT = selectPars tau (PtEtaCut 20 2.5)
 
 selectPars :: ParticleType -> PtEtaCut -> Reader ParticleMap [Particle]
 selectPars ptype cut = liftM (filter (\p -> (p `is` ptype) &&
@@ -37,7 +38,7 @@ finalObjs :: Reader ParticleMap ParObjs
 finalObjs = do
   jets  <- selectJ
   bjets <- selectB
-  leps  <- liftM (lepJetIsol (jets ++ bjets)) selectL
+  leps  <- liftM (lepJetIsol $ jets ++ bjets) selectL
   taus  <- selectT
   mpt   <- selectM
   return ParObjs { isoLep    = leps
@@ -48,9 +49,9 @@ finalObjs = do
                  }
 
 -- | Resolves overlaps between jets and leptons.
-lepJetIsol :: [Particle] -- ^Jets
-           -> [Particle] -- ^Lepton candidates
+lepJetIsol :: [Particle] -- ^ Jets
+           -> [Particle] -- ^ Lepton candidates
            -> [Particle]
-lepJetIsol jets leps | null leps || null jets = leps
-                     | otherwise              = filter (`isolated` jets) leps
-                     where isolated l = all (\j -> fromJust (dR [l,j]) > 0.4)
+lepJetIsol !jets !leps | null jets = leps
+                       | otherwise = filter (`isolated` jets) leps
+                       where isolated l = all (\j -> fromJust (dR [l,j]) > 0.4)

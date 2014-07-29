@@ -32,8 +32,10 @@ bkgs = M.fromList [ ("ttbb", 0.88208)
                   ]
 
 cutMap :: Map String String
-cutMap = M.fromList [ ("basic", "nl == 1 AND nb >= 3")
-                    , ("met", "met > 150")
+cutMap = M.fromList [ ("basic", "nl >= 1 AND nb >= 3 AND nj >= 4 AND pTj1 > 90 AND met > 150")
+                    , ("met", "met > 175")
+                    , ("mT", "mT > 140")
+                    , ("meff", "meff > 700")
                     ]
 
 countEvents :: Args -> IO ()
