@@ -9,7 +9,7 @@ import           Interface.Histogram1D
 import           Data.Map              (Map, fromList)
 
 basicCut :: String
-basicCut = " AND nl >= 1 AND nb >= 3 AND nj >= 4 AND pTj1 > 90"
+basicCut = " AND nl >= 1 AND nb >= 3 AND nj >= 4 AND pTj1 > 90 AND met > 150"
 
 histData :: Map String HistFill
 histData = fromList [ ("m_bl_theta",
