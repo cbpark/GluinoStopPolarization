@@ -27,8 +27,8 @@ bkgs :: Map String Double
 bkgs = M.fromList [ ("ttbb", 0.88208)
                   , ("ttz", 0.5519556)
                   , ("tth", 0.8639613333333334)
-                  , ("tzj", 1.21201912)
-                  , ("tbzj", 1.0080504)
+                  , ("tzj", 0.8080128)
+                  , ("tbzj", 0.6720336)
                   ]
 
 cutMap :: Map String String
