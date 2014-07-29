@@ -13,7 +13,7 @@ import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
 import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
-import qualified Data.Map                        as Map
+import qualified Data.Map                        as M
 import           Options.Applicative
 import           System.IO                       (Handle, IOMode (..), withFile)
 
@@ -45,7 +45,7 @@ parseCalcSave infile outfile = do
       writeHeader :: Handle -> IO ()
       writeHeader h = C.hPutStrLn h $
                       "# " `C.append` C.intercalate ", "
-                      (Map.keys var)
+                      (M.keys var)
 
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
       parseCalcSave' s h = do
@@ -59,7 +59,7 @@ parseCalcSave infile outfile = do
 printResult :: ParticleMap -> Handle -> StateT Integer IO ()
 printResult pm hdl = do
   neve <- get
-  let result = sequence (Map.elems var) pm
+  let result = sequence (M.elems var) pm
   liftIO $ B.hPutStrLn hdl $
          B.pack (show neve ++ ", ") `B.append` B.intercalate ", " result
 

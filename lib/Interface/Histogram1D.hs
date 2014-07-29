@@ -13,7 +13,8 @@ import           Interface.IOHelper                (removeIfExists)
 import qualified Data.ByteString.Char8             as B
 import           Data.Double.Conversion.ByteString (toShortest)
 import           Data.List                         (intercalate, transpose)
-import qualified Data.Map                          as Map
+import           Data.Map                          (Map)
+import qualified Data.Map                          as M
 import qualified Data.Vector                       as V
 import qualified Data.Vector.Generic               as G
 import           Statistics.Sample.Histogram       (histogram_)
@@ -25,14 +26,14 @@ data HistFill = HistFill { cutStr     :: String
                          , upperBound :: Double
                          }
 
-mkHist :: [FilePath] -> FilePath -> String -> Map.Map String HistFill -> IO ()
+mkHist :: [FilePath] -> FilePath -> String -> Map String HistFill -> IO ()
 mkHist infiles outfile var histf = do
   removeIfExists outfile
 
-  case Map.lookup var histf of
+  case M.lookup var histf of
     Nothing              -> do putStrLn $ var ++ " is not known."
                                putStrLn $ "Possible variables: " ++
-                                        intercalate ", " (Map.keys histf)
+                                        intercalate ", " (M.keys histf)
     Just (HistFill {..}) -> do
       result <- mkHist' infiles var cutStr nBin lowerBound upperBound
       withFile outfile WriteMode $ \hdl -> do

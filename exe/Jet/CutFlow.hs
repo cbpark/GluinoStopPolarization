@@ -1,12 +1,15 @@
 module Main where
 
-import           Interface.Database  (queryCount)
+import           Interface.Database        (queryCount)
 
 import           Control.Monad
-import           Data.List           (intercalate)
-import qualified Data.Map            as Map
+import           Control.Monad.IO.Class
+import           Control.Monad.Trans.State
+import           Data.List                 (intercalate)
+import           Data.Map                  (Map)
+import qualified Data.Map                  as M
 import           Options.Applicative
-import           System.Directory    (doesFileExist)
+import           System.Directory          (doesFileExist)
 
 data Args = Args { cut :: [String] }
 
@@ -14,45 +17,68 @@ cmdoptions :: Parser Args
 cmdoptions = Args <$> some (argument str ( metavar "CUTS"
                                         <> help "selection cuts"))
 
-scale :: Map.Map String Double
-scale = Map.fromList [ ("Gluino_LHStop_semileptonic", 3.113951639514e-2)
-                     , ("Gluino_RHStop_semileptonic", 3.088337466216e-2)
-                     , ("ttbb", 0.88208)
-                     , ("ttz", 0.5519556)
-                     , ("tth", 0.8639613333333334)
-                     , ("tzj", 1.21201912)
-                     , ("tbzj", 1.0080504)
-                     ]
+signalLH :: Map String Double
+signalLH = M.fromList [("Gluino_LHStop_semileptonic", 1.5272641404299125e-3)]
 
-cutMap :: Map.Map String String
-cutMap = Map.fromList [ ("basic", "nl == 1 AND nb >= 3")
-                      , ("met", "met > 150")
-                      ]
+signalRH :: Map String Double
+signalRH = M.fromList [("Gluino_RHStop_semileptonic", 1.5272641404299125e-3)]
+
+bkgs :: Map String Double
+bkgs = M.fromList [ ("ttbb", 0.88208)
+                  , ("ttz", 0.5519556)
+                  , ("tth", 0.8639613333333334)
+                  , ("tzj", 1.21201912)
+                  , ("tbzj", 1.0080504)
+                  ]
+
+cutMap :: Map String String
+cutMap = M.fromList [ ("basic", "nl == 1 AND nb >= 3")
+                    , ("met", "met > 150")
+                    ]
 
 countEvents :: Args -> IO ()
 countEvents (Args cuts) = do
-  let unknown = filter (`Map.notMember` cutMap) cuts
+  let unknown = filter (`M.notMember` cutMap) cuts
   if (not . null) unknown
   then do mapM_ (putStrLn . (++" is not valid.")) unknown
-          putStrLn $ "Cut variables: " ++ intercalate ", " (Map.keys cutMap)
-  else countEvents' cuts
-    where countEvents' cs = do let cs' = map (\c -> cutMap Map.! c) cs
-                                   cutstr = intercalate " AND " cs'
-                               countMap <- getCount cutstr
-                               mapM_ (\(k, v) -> putStrLn $ k ++ ": " ++ show v)
-                                     (Map.toList countMap)
+          putStrLn $ "Cut variables: " ++ intercalate ", " (M.keys cutMap)
+  else do nbkg <- printResult bkgs
+          nLH <- printResult signalLH
+          putStrLn $ "Signal significance: " ++ show (sigEstimator nLH nbkg)
+          nRH <- printResult signalRH
+          putStrLn $ "Signal significance: " ++ show (sigEstimator nRH nbkg)
+    where
+      printResult :: Map String Double -> IO Double
+      printResult evs = do
+        putStrLn "-------------------------------------------------------------"
+        n <- execStateT (countEvents' cuts evs) 0
+        putStrLn $ "# of events passed = " ++ show n
+        return n
 
-getCount :: String -> IO (Map.Map String Double)
-getCount cuts = liftM Map.fromList $ mapM getCount' (Map.keys scale)
+      countEvents' :: [String] -> Map String Double -> StateT Double IO ()
+      countEvents' cs es = do let cs' = map (\c -> cutMap M.! c) cs
+                                  cutstr = intercalate " AND " cs'
+                              countMap <- liftIO $ getCount cutstr es
+                              modify (+ (sum $ M.elems countMap))
+                              liftIO $ mapM_ (\(k, v) ->
+                                              putStrLn $ k ++ ": " ++ show v)
+                                             (M.toList countMap)
+
+sigEstimator :: Double -> Double -> Double
+sigEstimator nsig nbkg =
+    sqrt $ 2 * (nsig + nbkg) * log (1 + nsig / nbkg) - 2 * nsig
+
+getCount :: String -> Map String Double -> IO (Map String Double)
+getCount cuts evs = liftM M.fromList $ mapM getCount' (M.keys evs)
     where getCount' :: String -> IO (String, Double)
-          getCount' dname = do
-            let datafile = dname ++ "_jet.db"
+          getCount' dataname = do
+            let datafile = dataname ++ "_jet.db"
             fileExists <- doesFileExist datafile
             if fileExists
             then do n <- queryCount cuts datafile
-                    return (dname, fromIntegral n * (scale Map.! dname))
+                    return (dataname, fromIntegral n * (evs M.! dataname))
             else do putStrLn $ "-- " ++ datafile ++ " does not exist."
-                    return (dname, 0)
+                    return (dataname, 0)
 
 main :: IO ()
 main = execParser opts >>= countEvents

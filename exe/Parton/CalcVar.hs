@@ -14,7 +14,7 @@ import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
 import qualified Data.ByteString.Char8           as B
 import qualified Data.ByteString.Lazy.Char8      as C
-import qualified Data.Map                        as Map
+import qualified Data.Map                        as M
 import           Database.HDBC
 import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
@@ -55,19 +55,19 @@ prepareDB outfile = do
   conn <- connectSqlite3 outfile
   run conn ("CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
             concatMap (\v -> ", " ++ C.unpack v ++ " REAL")
-                      (Map.keys var) ++ ");") []
+                      (M.keys var) ++ ");") []
   run conn ("CREATE TABLE varallcomb (neve INTEGER PRIMARY KEY" ++
             concatMap (\v -> ", " ++ C.unpack v ++ " TEXT")
-                      (Map.keys varallcomb) ++ ");") []
+                      (M.keys varallcomb) ++ ");") []
   commit conn
   return conn
 
 insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
 insertResult pm conn = do
   neve <- get
-  let !varResult = toSql neve : map toSql (sequence (Map.elems var) pm)
+  let !varResult = toSql neve : map toSql (sequence (M.elems var) pm)
       !varcomballResult = toSql neve : map (toSql . B.intercalate ", ")
-                          (sequence (Map.elems varallcomb) pm)
+                          (sequence (M.elems varallcomb) pm)
   liftIO $ do
     run conn ("INSERT INTO var (neve, " ++
               insertAll var ++ "?)") varResult
@@ -75,9 +75,9 @@ insertResult pm conn = do
               insertAll varallcomb ++ "?)") varcomballResult
     commit conn
         where insertAll vm =
-                  C.unpack (C.intercalate ", " (Map.keys vm)) ++
+                  C.unpack (C.intercalate ", " (M.keys vm)) ++
                   ") VALUES (" ++
-                  concat (replicate (length (Map.keys vm)) "?, ")
+                  concat (replicate (length (M.keys vm)) "?, ")
 
 main :: IO ()
 main = execParser opts >>= calcAndSave

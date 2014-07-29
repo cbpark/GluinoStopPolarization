@@ -15,7 +15,7 @@ import           Control.Monad.Trans.Reader      (runReader)
 import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
 import qualified Data.ByteString.Lazy.Char8      as C
-import qualified Data.Map                        as Map
+import qualified Data.Map                        as M
 import           Database.HDBC
 import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
@@ -59,15 +59,15 @@ insertResult pm conn infile = do
   when (neve == 1) $ liftIO (prepareDB result)
   liftIO $ do
     run conn ("INSERT INTO var (neve, " ++
-              C.unpack (C.intercalate ", " (Map.keys result)) ++
-              ") VALUES (" ++ concat (replicate (Map.size result) "?, ") ++ "?)") $
+              C.unpack (C.intercalate ", " (M.keys result)) ++
+              ") VALUES (" ++ concat (replicate (M.size result) "?, ") ++ "?)") $
            toSql (takeBaseName infile ++ "-" ++ show neve) :
-           map toSql (Map.elems result)
+           map toSql (M.elems result)
     commit conn
       where prepareDB r = do run conn ("CREATE TABLE var (neve " ++
                                        "TEXT PRIMARY KEY" ++
                                        concatMap (\v -> ", " ++ C.unpack v ++ " REAL")
-                                       (Map.keys r) ++ ");") []
+                                       (M.keys r) ++ ");") []
                              commit conn
 
 main :: IO ()

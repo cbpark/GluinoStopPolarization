@@ -8,7 +8,7 @@ import           Parton.Variables           (var)
 
 import           Control.Exception          (IOException, catch, finally)
 import qualified Data.ByteString.Lazy.Char8 as C
-import qualified Data.Map                   as Map
+import qualified Data.Map                   as M
 import           Options.Applicative
 import           System.Directory           (getTemporaryDirectory, removeFile)
 import           System.Exit                (ExitCode (..))
@@ -28,7 +28,7 @@ cmdoptions = Args <$> argument str ( metavar "DATA"
 sqlCommand :: FilePath -> String
 sqlCommand filename = unlines
     [ "CREATE TABLE var (neve INTEGER PRIMARY KEY" ++
-      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (Map.keys var)
+      concatMap (\v -> ", " ++ C.unpack v ++ " REAL") (M.keys var)
       ++ ");"
     , ".separator \',\'"
     , ".import " ++ filename ++ " var"

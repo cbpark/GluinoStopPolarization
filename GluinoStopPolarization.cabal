@@ -120,6 +120,7 @@ executable gluinostop_cut_jet
                        containers >=0.5,
                        directory >=1.2,
                        optparse-applicative >=0.9,
+                       transformers >=0.4,
                        GluinoStopPolarization
   hs-source-dirs:      exe/Jet
   default-language:    Haskell2010

@@ -43,11 +43,12 @@ import           Data.ByteString.Char8             (ByteString)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.List                         (find)
-import qualified Data.Map                          as Map
+import           Data.Map                          (Map)
+import qualified Data.Map                          as M
 import           Data.Maybe                        (mapMaybe)
 
-var :: Map.Map C.ByteString (ParticleMap -> ByteString)
-var = Map.fromList $ zip varField varFuncs
+var :: Map C.ByteString (ParticleMap -> ByteString)
+var = M.fromList $ zip varField varFuncs
 
 varField :: [C.ByteString]
 varField = [ "er_true"
@@ -75,8 +76,8 @@ varFuncs = [ eRatioTrue
            , missingET
            ]
 
-varallcomb :: Map.Map C.ByteString (ParticleMap -> [ByteString])
-varallcomb = Map.fromList $ zip varallcombField varallcombFuncs
+varallcomb :: Map C.ByteString (ParticleMap -> [ByteString])
+varallcomb = M.fromList $ zip varallcombField varallcombFuncs
 
 varallcombField :: [C.ByteString]
 varallcombField = [ "mbl_all"
@@ -147,9 +148,9 @@ pairByR = pairBy (HowPair dR ByMin)
 pairBy :: HowPair -> ParticleMap -> ParticlePairs
 pairBy (HowPair func choice) pm =
     let allpairs = particlesOfAllBL pm
-        pairMap = foldr (\p m -> Map.insert (func p) p m) Map.empty allpairs
-        chosenPair = (\case ByMax -> Map.maxView pairMap
-                            _     -> Map.minView pairMap) choice
+        pairMap = foldr (\p m -> M.insert (func p) p m) M.empty allpairs
+        chosenPair = (\case ByMax -> M.maxView pairMap
+                            _     -> M.minView pairMap) choice
     in case chosenPair of Just (pair, _) -> [pair]
                           _              -> []
 
