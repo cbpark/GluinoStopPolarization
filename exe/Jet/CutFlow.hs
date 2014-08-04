@@ -18,10 +18,10 @@ cmdoptions = Args <$> some (argument str ( metavar "CUTS"
                                         <> help "selection cuts"))
 
 signalLH :: Map String Double
-signalLH = M.fromList [("Gluino_LHStop_semileptonic", 1.5272641404299125e-3)]
+signalLH = M.fromList [("Gluino_LHStop_semileptonic", 1.5380866629110083e-3)]
 
 signalRH :: Map String Double
-signalRH = M.fromList [("Gluino_RHStop_semileptonic", 1.5272641404299125e-3)]
+signalRH = M.fromList [("Gluino_RHStop_semileptonic", 1.5085951819250394e-3)]
 
 bkgs :: Map String Double
 bkgs = M.fromList [ ("ttbb", 0.88208)

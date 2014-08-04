@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Jet.Selection where
@@ -52,6 +51,6 @@ finalObjs = do
 lepJetIsol :: [Particle] -- ^ Jets
            -> [Particle] -- ^ Lepton candidates
            -> [Particle]
-lepJetIsol !jets !leps | null jets = leps
-                       | otherwise = filter (`isolated` jets) leps
-                       where isolated l = all (\j -> fromJust (dR [l,j]) > 0.4)
+lepJetIsol jets leps | null jets = leps
+                     | otherwise = filter (`isolated` jets) leps
+                     where isolated l = all (\j -> fromJust (dR [l,j]) > 0.4)
