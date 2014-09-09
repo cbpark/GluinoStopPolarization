@@ -39,7 +39,7 @@ parseCalcSave infile outfile = do
   removeIfExists outfile
   conn <- connectSqlite3 outfile
   evstr <- C.readFile infile
-  ntot <- execStateT ((parseCalcSave' . stripLHEF) evstr conn) 0
+  ntot <- execStateT (parseCalcSave' evstr conn) 0
   disconnect conn
   C.putStrLn . C.pack $ "-- Total number of events parsed = " ++ show (ntot - 1)
   C.putStrLn . C.pack $ "-- " ++ outfile ++ " has been created."

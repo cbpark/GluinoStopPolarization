@@ -38,8 +38,7 @@ parseCalcSave infile outfile = do
   evstr <- C.readFile infile
   ntot <- withFile outfile WriteMode $ \hdl -> do
                                  writeHeader hdl
-                                 execStateT ((parseCalcSave' . stripLHEF)
-                                             evstr hdl) 0
+                                 execStateT (parseCalcSave' evstr hdl) 0
   putStrLn $ "Total number of events parsed = " ++ show (ntot - 1)
     where
       writeHeader :: Handle -> IO ()
