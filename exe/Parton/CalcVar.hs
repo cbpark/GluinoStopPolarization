@@ -39,8 +39,8 @@ parseCalcSave infile outfile = do
   evstr <- C.readFile infile
   ntot <- execStateT (parseCalcSave' evstr conn) 0
   disconnect conn
-  C.putStrLn . C.pack $ "-- Total number of events parsed = " ++ show (ntot - 1)
-  C.putStrLn . C.pack $ "-- " ++ outfile ++ " has been created."
+  putStrLn $ "-- Total number of events parsed = " ++ show (ntot - 1)
+  putStrLn $ "-- " ++ outfile ++ " has been created."
       where
         parseCalcSave' :: C.ByteString -> Connection -> StateT Integer IO ()
         parseCalcSave' s c = do
