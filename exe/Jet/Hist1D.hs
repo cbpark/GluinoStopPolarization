@@ -1,8 +1,8 @@
 module Main where
 
-import           Jet.Hist            (histData, mkHist)
-
 import           Options.Applicative
+
+import           Jet.Hist            (histData, mkHist)
 
 data Args = Args { input :: [String], var :: String, output :: String }
 

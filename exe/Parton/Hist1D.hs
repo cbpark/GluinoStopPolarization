@@ -1,8 +1,8 @@
 module Main where
 
-import           Parton.Hist         (histData, mkHist)
-
 import           Options.Applicative
+
+import           Parton.Hist         (histData, mkHist)
 
 data Args = Args { input :: [String], var :: String, output :: String }
 

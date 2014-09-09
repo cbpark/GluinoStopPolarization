@@ -21,107 +21,107 @@ library
                        Jet.Selection
                        Object.Particles
                        Parton.Selection
-  build-depends:       base >=4.6,
-                       bytestring >=0.10,
-                       containers >=0.5,
-                       directory >=1.2,
-                       double-conversion >=0.2,
-                       HDBC >=2.4,
-                       HDBC-sqlite3 >=2.3,
-                       statistics >=0.11,
-                       transformers >=0.4,
-                       vector >=0.10,
-                       lhef-tools >=0.1
+  build-depends:       base >=4.6
+                     , bytestring >=0.10
+                     , containers >=0.5
+                     , directory >=1.2
+                     , double-conversion >=0.2
+                     , HDBC >=2.4
+                     , HDBC-sqlite3 >=2.3
+                     , statistics >=0.11
+                     , transformers >=0.3 && <0.5
+                     , vector >=0.10
+                     , lhef-tools >=0.1
   hs-source-dirs:      lib
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_calcvar_parton
   main-is:             CalcVar.hs
-  build-depends:       base >=4.6,
-                       attoparsec >=0.12,
-                       bytestring >=0.10,
-                       containers >=0.5,
-                       HDBC >=2.4,
-                       HDBC-sqlite3 >=2.3,
-                       optparse-applicative >=0.9,
-                       transformers >=0.4,
-                       lhef-tools >=0.1,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , attoparsec >=0.12
+                     , bytestring >=0.10
+                     , containers >=0.5
+                     , HDBC >=2.4
+                     , HDBC-sqlite3 >=2.3
+                     , optparse-applicative >=0.9
+                     , transformers >=0.3 && <0.5
+                     , lhef-tools >=0.1
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_calcraw_parton
   main-is:             CalcRaw.hs
-  build-depends:       base >=4.6,
-                       attoparsec >=0.12,
-                       bytestring >=0.10,
-                       containers >=0.5,
-                       optparse-applicative >=0.9,
-                       transformers >=0.4,
-                       lhef-tools >=0.1,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , attoparsec >=0.12
+                     , bytestring >=0.10
+                     , containers >=0.5
+                     , optparse-applicative >=0.9
+                     , transformers >=0.3 && <0.5
+                     , lhef-tools >=0.1
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_createdb_parton
   main-is:             CreateDB.hs
-  build-depends:       base >=4.6,
-                       bytestring >=0.10,
-                       containers >=0.5,
-                       directory >=1.2,
-                       optparse-applicative >=0.9,
-                       process >=1.2,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , bytestring >=0.10
+                     , containers >=0.5
+                     , directory >=1.2
+                     , optparse-applicative >=0.9
+                     , process >=1.2
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_hist1d_parton
   main-is:             Hist1D.hs
-  build-depends:       base >=4.6,
-                       optparse-applicative >=0.9,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , optparse-applicative >=0.9
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Parton
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_calcvar_jet
   main-is:             CalcVar.hs
-  build-depends:       base >=4.6,
-                       attoparsec >=0.12,
-                       bytestring >=0.10,
-                       containers >=0.5,
-                       filepath >=1.3,
-                       HDBC >=2.4,
-                       HDBC-sqlite3 >=2.3,
-                       optparse-applicative >=0.9,
-                       transformers >=0.4,
-                       lhef-tools >=0.1,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , attoparsec >=0.12
+                     , bytestring >=0.10
+                     , containers >=0.5
+                     , filepath >=1.3
+                     , HDBC >=2.4
+                     , HDBC-sqlite3 >=2.3
+                     , optparse-applicative >=0.9
+                     , transformers >=0.3 && <0.5
+                     , lhef-tools >=0.1
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Jet
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_hist1d_jet
   main-is:             Hist1D.hs
-  build-depends:       base >=4.6,
-                       optparse-applicative >=0.9,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , optparse-applicative >=0.9
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Jet
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind
 
 executable gluinostop_cut_jet
   main-is:             CutFlow.hs
-  build-depends:       base >=4.6,
-                       containers >=0.5,
-                       directory >=1.2,
-                       optparse-applicative >=0.9,
-                       transformers >=0.4,
-                       GluinoStopPolarization
+  build-depends:       base >=4.6
+                     , containers >=0.5
+                     , directory >=1.2
+                     , optparse-applicative >=0.9
+                     , transformers >=0.3 && <0.5
+                     , GluinoStopPolarization
   hs-source-dirs:      exe/Jet
   default-language:    Haskell2010
   ghc-options:         -Wall -O2 -threaded -funbox-strict-fields -fno-warn-unused-do-bind

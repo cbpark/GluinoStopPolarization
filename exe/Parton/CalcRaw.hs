@@ -2,12 +2,6 @@
 
 module Main where
 
-import           Interface.IOHelper              (removeIfExists)
-import           Parton.Variables                (var)
-
-import           HEP.Data.LHEF
-import           HEP.Data.LHEF.Parser
-
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
@@ -16,6 +10,12 @@ import qualified Data.ByteString.Lazy.Char8      as C
 import qualified Data.Map                        as M
 import           Options.Applicative
 import           System.IO                       (Handle, IOMode (..), withFile)
+
+import           HEP.Data.LHEF
+import           HEP.Data.LHEF.Parser
+
+import           Interface.IOHelper              (removeIfExists)
+import           Parton.Variables                (var)
 
 data Args = Args { input :: String, output :: String }
 
@@ -40,7 +40,7 @@ parseCalcSave infile outfile = do
                                  writeHeader hdl
                                  execStateT ((parseCalcSave' . stripLHEF)
                                              evstr hdl) 0
-  C.putStrLn . C.pack $ "Total number of events parsed = " ++ show (ntot - 1)
+  putStrLn $ "Total number of events parsed = " ++ show (ntot - 1)
     where
       writeHeader :: Handle -> IO ()
       writeHeader h = C.hPutStrLn h $
@@ -50,11 +50,10 @@ parseCalcSave infile outfile = do
       parseCalcSave' :: C.ByteString -> Handle -> StateT Integer IO ()
       parseCalcSave' s h = do
         modify (+1)
-        case parse parseEvent s of
+        case parse lhefEvent s of
           Fail r _ _               -> liftIO $ C.putStr r
-          Done evRemained evParsed -> do
-                                  printResult (snd evParsed) h
-                                  parseCalcSave' evRemained h
+          Done evRemained evParsed -> do printResult (snd evParsed) h
+                                         parseCalcSave' evRemained h
 
 printResult :: ParticleMap -> Handle -> StateT Integer IO ()
 printResult pm hdl = do

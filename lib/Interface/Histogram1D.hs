@@ -7,9 +7,6 @@ module Interface.Histogram1D
     , mkHist
     ) where
 
-import           Interface.Database                (queryVar)
-import           Interface.IOHelper                (removeIfExists)
-
 import qualified Data.ByteString.Char8             as B
 import           Data.Double.Conversion.ByteString (toShortest)
 import           Data.List                         (intercalate, transpose)
@@ -19,6 +16,9 @@ import qualified Data.Vector                       as V
 import qualified Data.Vector.Generic               as G
 import           Statistics.Sample.Histogram       (histogram_)
 import           System.IO                         (IOMode (..), withFile)
+
+import           Interface.Database                (queryVar)
+import           Interface.IOHelper                (removeIfExists)
 
 data HistFill = HistFill { cutStr     :: String
                          , nBin       :: Int
@@ -44,12 +44,12 @@ mkHist infiles outfile var histf = do
                                 "# " `B.append`
                                 B.intercalate ", " (map B.pack infiles)
 
-mkHist' :: [FilePath]        -- ^Input files
-        -> String            -- ^Variable
-        -> String            -- ^Cut string
-        -> Int               -- ^Number of bins
-        -> Double            -- ^Lower bound
-        -> Double            -- ^Upper bound
+mkHist' :: [FilePath]        -- ^ Input files
+        -> String            -- ^ Variable
+        -> String            -- ^ Cut string
+        -> Int               -- ^ Number of bins
+        -> Double            -- ^ Lower bound
+        -> Double            -- ^ Upper bound
         -> IO [B.ByteString]
 mkHist' infiles var cut nbin lower upper = do
   vss <- mapM (queryVar var cut) infiles

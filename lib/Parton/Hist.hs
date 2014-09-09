@@ -6,9 +6,9 @@ module Parton.Hist
     , mkHist
     ) where
 
-import           Interface.Histogram1D
-
 import           Data.Map              (Map, fromList)
+
+import           Interface.Histogram1D
 
 histData :: Map String HistFill
 histData = fromList [ ("er_true",       HistFill "er_true > 0 AND dr_true > 0.4" 50 0 1)

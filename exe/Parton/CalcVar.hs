@@ -3,12 +3,6 @@
 
 module Main where
 
-import           Interface.IOHelper              (removeIfExists)
-import           Parton.Variables                (var, varallcomb)
-
-import           HEP.Data.LHEF
-import           HEP.Data.LHEF.Parser
-
 import           Control.Monad.IO.Class          (liftIO)
 import           Control.Monad.Trans.State
 import           Data.Attoparsec.ByteString.Lazy (Result (..), parse)
@@ -18,6 +12,12 @@ import qualified Data.Map                        as M
 import           Database.HDBC
 import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
+
+import           HEP.Data.LHEF
+import           HEP.Data.LHEF.Parser
+
+import           Interface.IOHelper              (removeIfExists)
+import           Parton.Variables                (var, varallcomb)
 
 data Args = Args { input :: String, output :: String }
 
@@ -45,10 +45,10 @@ parseCalcSave infile outfile = do
         parseCalcSave' :: C.ByteString -> Connection -> StateT Integer IO ()
         parseCalcSave' s c = do
           modify (+1)
-          case parse parseEvent s of Fail r _ _ -> liftIO $ C.putStr r
-                                     Done evRemained evParsed -> do
-                                       insertResult (snd evParsed) c
-                                       parseCalcSave' evRemained c
+          case parse lhefEvent s of Fail r _ _ -> liftIO $ C.putStr r
+                                    Done evRemained evParsed -> do
+                                      insertResult (snd evParsed) c
+                                      parseCalcSave' evRemained c
 
 prepareDB :: FilePath -> IO Connection
 prepareDB outfile = do

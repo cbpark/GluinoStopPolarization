@@ -4,9 +4,9 @@ module Jet.Hist
     , mkHist
     ) where
 
-import           Interface.Histogram1D
-
 import           Data.Map              (Map, fromList)
+
+import           Interface.Histogram1D
 
 basicCut :: String
 basicCut = " AND nl >= 1 AND nb >= 3 AND nj >= 4 AND pTj1 > 90 AND met > 150"

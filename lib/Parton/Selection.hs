@@ -9,13 +9,13 @@ module Parton.Selection
     , containsBL
     ) where
 
-import           Object.Particles
-
-import           HEP.Data.LHEF
-
 import           Control.Applicative
 import           Control.Monad.Trans.Reader
 import           Data.Maybe                 (fromMaybe)
+
+import           HEP.Data.LHEF
+
+import           Object.Particles
 
 data ParSelec = ParSelec { ptype  :: ParticleType
                          , ptcut  :: Double

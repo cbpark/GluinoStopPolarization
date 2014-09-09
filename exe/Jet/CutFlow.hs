@@ -1,7 +1,5 @@
 module Main where
 
-import           Interface.Database        (queryCount)
-
 import           Control.Monad
 import           Control.Monad.IO.Class
 import           Control.Monad.Trans.State
@@ -10,6 +8,8 @@ import           Data.Map                  (Map)
 import qualified Data.Map                  as M
 import           Options.Applicative
 import           System.Directory          (doesFileExist)
+
+import           Interface.Database        (queryCount)
 
 data Args = Args { cut :: [String] }
 

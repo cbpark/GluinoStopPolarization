@@ -3,9 +3,6 @@
 
 module Main where
 
-import           Interface.IOHelper         (removeIfExists)
-import           Parton.Variables           (var)
-
 import           Control.Exception          (IOException, catch, finally)
 import qualified Data.ByteString.Lazy.Char8 as C
 import qualified Data.Map                   as M
@@ -14,6 +11,9 @@ import           System.Directory           (getTemporaryDirectory, removeFile)
 import           System.Exit                (ExitCode (..))
 import           System.IO
 import           System.Process
+
+import           Interface.IOHelper         (removeIfExists)
+import           Parton.Variables           (var)
 
 data Args = Args { input :: String, output :: String }
 

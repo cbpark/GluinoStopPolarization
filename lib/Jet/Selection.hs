@@ -2,13 +2,13 @@
 
 module Jet.Selection where
 
-import           Object.Particles
-
-import           HEP.Data.LHEF
-
 import           Control.Monad              (liftM)
 import           Control.Monad.Trans.Reader
 import           Data.Maybe                 (fromJust)
+
+import           Object.Particles
+
+import           HEP.Data.LHEF
 
 data PtEtaCut = PtEtaCut { ptcut :: Double, etacut :: Double }
 

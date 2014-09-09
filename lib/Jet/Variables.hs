@@ -4,11 +4,6 @@
 
 module Jet.Variables where
 
-import           Jet.Selection                     (finalObjs)
-import           Object.Particles                  (ParObjs (..))
-
-import           HEP.Data.LHEF
-
 import           Control.Applicative
 import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString, pack)
@@ -16,6 +11,11 @@ import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
 import           Data.Map                          (Map, fromList, maxView)
 import           Data.Maybe                        (fromJust, fromMaybe)
+
+import           HEP.Data.LHEF
+
+import           Jet.Selection                     (finalObjs)
+import           Object.Particles                  (ParObjs (..))
 
 type JetLevelResult = Map C.ByteString ByteString
 

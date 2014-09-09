@@ -32,11 +32,6 @@ module Parton.Variables
     , missingET
     ) where
 
-import           Object.Particles
-import           Parton.Selection
-
-import           HEP.Data.LHEF
-
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString)
@@ -46,6 +41,11 @@ import           Data.List                         (find)
 import           Data.Map                          (Map)
 import qualified Data.Map                          as M
 import           Data.Maybe                        (mapMaybe)
+
+import           HEP.Data.LHEF
+
+import           Object.Particles
+import           Parton.Selection
 
 var :: Map C.ByteString (ParticleMap -> ByteString)
 var = M.fromList $ zip varField varFuncs
