@@ -16,7 +16,6 @@ import           Options.Applicative
 import           System.FilePath                 (takeBaseName)
 
 import           HEP.Data.LHEF
-import           HEP.Data.LHEF.Parser
 
 import           Interface.IOHelper              (removeIfExists)
 import           Jet.Variables                   (calcVar)

@@ -5,6 +5,8 @@ cabal.sandbox.config
 .cabal-sandbox
 *.lhe
 *.log
+*.old
 *.db
 *.dat
 *.eps
+*.pdf

@@ -12,7 +12,6 @@ import           Options.Applicative
 import           System.IO                       (Handle, IOMode (..), withFile)
 
 import           HEP.Data.LHEF
-import           HEP.Data.LHEF.Parser
 
 import           Interface.IOHelper              (removeIfExists)
 import           Parton.Variables                (var)

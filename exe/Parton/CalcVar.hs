@@ -14,7 +14,6 @@ import           Database.HDBC.Sqlite3           (Connection, connectSqlite3)
 import           Options.Applicative
 
 import           HEP.Data.LHEF
-import           HEP.Data.LHEF.Parser
 
 import           Interface.IOHelper              (removeIfExists)
 import           Parton.Variables                (var, varallcomb)
