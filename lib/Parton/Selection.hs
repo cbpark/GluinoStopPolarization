@@ -32,12 +32,12 @@ basicCutFor ParSelec {..} p
     | p `is` ptype = transMomentum [p] > ptcut && (abs . rapidity) p < etacut
     | otherwise    = False
 
-particlesFromTop :: ParticleMap -> ParticlePairs
+particlesFromTop :: EventEntry -> ParticlePairs
 particlesFromTop pm =
     let ps = runReader (particlesFrom topQuark) pm
     in map (filter ((||) <$> basicCutFor selectB <*> basicCutFor selectL)) ps
 
-particlesOfAllBL :: ParticleMap -> ParticlePairs
+particlesOfAllBL :: EventEntry -> ParticlePairs
 particlesOfAllBL pm = let !fstates = runReader finalStates pm
                           !leps = filter (basicCutFor selectL) fstates
                           !bs = filter (basicCutFor selectB) fstates

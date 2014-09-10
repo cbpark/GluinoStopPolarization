@@ -61,7 +61,7 @@ prepareDB outfile = do
   commit conn
   return conn
 
-insertResult :: ParticleMap -> Connection -> StateT Integer IO ()
+insertResult :: EventEntry -> Connection -> StateT Integer IO ()
 insertResult pm conn = do
   neve <- get
   let !varResult = toSql neve : map toSql (sequence (M.elems var) pm)

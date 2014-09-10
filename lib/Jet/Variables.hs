@@ -19,7 +19,7 @@ import           Object.Particles                  (ParObjs (..))
 
 type JetLevelResult = Map C.ByteString ByteString
 
-calcVar :: Reader ParticleMap JetLevelResult
+calcVar :: Reader EventEntry JetLevelResult
 calcVar = do
   !fobj <- finalObjs
   let !alljet = (++) <$> jet <*> bjet $ fobj

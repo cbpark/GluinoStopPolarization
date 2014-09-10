@@ -12,28 +12,28 @@ import           HEP.Data.LHEF
 
 data PtEtaCut = PtEtaCut { ptcut :: Double, etacut :: Double }
 
-selectJ :: Reader ParticleMap [Particle]
+selectJ :: Reader EventEntry [Particle]
 selectJ = selectPars quarkJet (PtEtaCut 20 2.8)
 
-selectB :: Reader ParticleMap [Particle]
+selectB :: Reader EventEntry [Particle]
 selectB = selectPars bQuark (PtEtaCut 20 2.8)
 
-selectL :: Reader ParticleMap [Particle]
+selectL :: Reader EventEntry [Particle]
 selectL = selectPars lepton (PtEtaCut 20 2.5)
 
-selectT :: Reader ParticleMap [Particle]
+selectT :: Reader EventEntry [Particle]
 selectT = selectPars tau (PtEtaCut 20 2.5)
 
-selectPars :: ParticleType -> PtEtaCut -> Reader ParticleMap [Particle]
+selectPars :: ParticleType -> PtEtaCut -> Reader EventEntry [Particle]
 selectPars ptype cut = liftM (filter (\p -> (p `is` ptype) &&
                                             ptEtaCutFor p cut)) finalStates
     where ptEtaCutFor p PtEtaCut { .. } =
               transMomentumOne p > ptcut && (abs . rapidity) p < etacut
 
-selectM :: Reader ParticleMap Particle
+selectM :: Reader EventEntry Particle
 selectM = liftM (head . filter (`is` invisible)) finalStates
 
-finalObjs :: Reader ParticleMap ParObjs
+finalObjs :: Reader EventEntry ParObjs
 finalObjs = do
   jets  <- selectJ
   bjets <- selectB

@@ -53,7 +53,7 @@ parseCalcSave infile outfile = do
           Done evRemained evParsed -> do printResult (snd evParsed) h
                                          parseCalcSave' evRemained h
 
-printResult :: ParticleMap -> Handle -> StateT Integer IO ()
+printResult :: EventEntry -> Handle -> StateT Integer IO ()
 printResult pm hdl = do
   neve <- get
   let result = sequence (M.elems var) pm

@@ -51,7 +51,7 @@ parseCalcSave infile outfile = do
                                       insertResult (snd evParsed) c infile
                                       parseCalcSave' evRemained c
 
-insertResult :: ParticleMap -> Connection -> FilePath -> StateT Integer IO ()
+insertResult :: EventEntry -> Connection -> FilePath -> StateT Integer IO ()
 insertResult pm conn infile = do
   let !result = runReader calcVar pm
   neve <- get
