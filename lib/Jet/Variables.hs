@@ -9,10 +9,12 @@ import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString, pack)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
+import           Data.Function                     (on)
 import           Data.Map                          (Map, fromList, maxView)
-import           Data.Maybe                        (fromJust, fromMaybe)
+import           Data.Maybe                        (fromMaybe)
 
 import           HEP.Data.LHEF
+import           HEP.Vector.LorentzVector          (transverseMass)
 
 import           Jet.Selection                     (finalObjs)
 import           Object.Particles                  (ParObjs (..))
@@ -26,12 +28,12 @@ calcVar = do
       (nl, nb, ntau) = (,,) <$>
                        length . isoLep <*> length . bjet <*> length . taujet $
                        fobj
-      nj = length . filter (\p -> transMomentumOne p > 30) $ alljet
-      met = transMomentumOne (missingPt fobj)
+      nj = length . filter (\p -> pt p > 30) $ alljet
+      met = pt (missingPt fobj)
       hT = hTinc fobj
       meff = met + hT
       mT = fromMaybe (-1) (transMassLep fobj)
-      pTj1 = if null alljet then -1 else maximum (map transMomentumOne alljet)
+      pTj1 = if null alljet then -1 else maximum (map pt alljet)
       mbl_by_theta = mBL fobj
       er_by_theta = eRatioBL fobj
   return $ fromList [ ("nl",          (pack . show) nl)
@@ -49,8 +51,8 @@ calcVar = do
 
 hTinc :: ParObjs -> Double
 hTinc ParObjs { .. } =
-    (sum . filter (>30) . map transMomentumOne) (jet ++ bjet) +
-    (sum . filter (>20) . map transMomentumOne) isoLep
+    (sum . filter (>30) . map pt) (jet ++ bjet) +
+    (sum . filter (>20) . map pt) isoLep
 
 transMassLep :: ParObjs -> Maybe Double
 transMassLep ParObjs { .. }
@@ -59,16 +61,19 @@ transMassLep ParObjs { .. }
 
 mBL :: ParObjs -> Double
 mBL ParObjs { .. } =
-    case (maxView . fromList) [(fromJust (cosTheta [b,l]), invMass [b,l])
-                               | b <- bjet, l <- isoLep] of
+    case (maxView . fromList) [(cosTheta b l, invariantMass [b,l]) |
+                               b <- bjet, l <- isoLep] of
       Just (mbl, _) -> mbl
       Nothing       -> -1
 
 eRatioBL :: ParObjs -> Double
 eRatioBL ParObjs { .. } =
-    case (maxView . fromList) [(fromJust (cosTheta [b,l]),
+    case (maxView . fromList) [(cosTheta b l,
                                 let (eB, eL) = (energyOf b, energyOf l)
                                 in eL / (eB + eL))
-                               | b <- bjet, l <- isoLep, invMass [b,l] < 165] of
+                               | b <- bjet, l <- isoLep, invariantMass [b,l] < 165] of
       Just (er, _) -> er
       _            -> -1
+
+transMassOne :: Particle -> Particle -> Double
+transMassOne = transverseMass `on` fourMomentum

@@ -133,13 +133,13 @@ data Choice = ByMin | ByMax
 data HowPair = HowPair ([Particle] -> Maybe Double) Choice
 
 pairByM :: EventEntry -> ParticlePairs
-pairByM = pairBy (HowPair (Just . invMass) ByMin)
+pairByM = pairBy (HowPair (Just . invariantMass) ByMin)
 
 pairByPT :: EventEntry -> ParticlePairs
-pairByPT = pairBy (HowPair (Just . transMomentum) ByMax)
+pairByPT = pairBy (HowPair (Just . ptVectorSum) ByMax)
 
 pairByTheta :: EventEntry -> ParticlePairs
-pairByTheta = pairBy (HowPair cosTheta ByMax)
+pairByTheta = pairBy (HowPair cosTh ByMax)
 
 pairByR :: EventEntry -> ParticlePairs
 pairByR = pairBy (HowPair dR ByMin)
@@ -154,22 +154,22 @@ pairBy (HowPair func choice) pm =
                           _              -> []
 
 mBLTrue :: EventEntry -> ByteString
-mBLTrue = headOf . runReader (calcVar 2 particlesFromTop (Just . invMass))
+mBLTrue = headOf . runReader (calcVar 2 particlesFromTop (Just . invariantMass))
 
 mBLAll :: EventEntry -> [ByteString]
-mBLAll = runReader $ calcVar 2 particlesOfAllBL (Just . invMass)
+mBLAll = runReader $ calcVar 2 particlesOfAllBL (Just . invariantMass)
 
 pTTrue :: EventEntry -> ByteString
-pTTrue = headOf . runReader (calcVar 2 particlesFromTop (Just . transMomentum))
+pTTrue = headOf . runReader (calcVar 2 particlesFromTop (Just . ptVectorSum))
 
 pTAll :: EventEntry -> [ByteString]
-pTAll = runReader $ calcVar 2 particlesOfAllBL (Just . transMomentum)
+pTAll = runReader $ calcVar 2 particlesOfAllBL (Just . ptVectorSum)
 
 cosThetaTrue :: EventEntry -> ByteString
-cosThetaTrue = headOf . runReader (calcVar 3 particlesFromTop cosTheta)
+cosThetaTrue = headOf . runReader (calcVar 3 particlesFromTop cosTh)
 
 cosThetaAll :: EventEntry -> [ByteString]
-cosThetaAll = runReader $ calcVar 3 particlesOfAllBL cosTheta
+cosThetaAll = runReader $ calcVar 3 particlesOfAllBL cosTh
 
 deltaRTrue :: EventEntry -> ByteString
 deltaRTrue = headOf . runReader (calcVar 3 particlesFromTop dR)
@@ -190,9 +190,16 @@ calcVar n mkpair func = do
         return $ mapMaybe f pss
 
 missingET :: EventEntry -> ByteString
-missingET = toFixed 2 .
-            transMomentum . filter (`is` invisible) . runReader finalStates
+missingET = toFixed 2 . ptVectorSum . filter (`is` invisible) . runReader finalStates
 
 headOf :: [ByteString] -> ByteString
 headOf (x:_) = x
 headOf _     = "-10"
+
+cosTh :: [Particle] -> Maybe Double
+cosTh [p,p'] = Just $ cosTheta p p'
+cosTh _      = Nothing
+
+dR :: [Particle] -> Maybe Double
+dR [p,p'] = Just $ deltaR p p'
+dR _      = Nothing

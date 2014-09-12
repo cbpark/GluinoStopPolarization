@@ -11,7 +11,6 @@ module Parton.Selection
 
 import           Control.Applicative
 import           Control.Monad.Trans.Reader
-import           Data.Maybe                 (fromMaybe)
 
 import           HEP.Data.LHEF
 
@@ -29,7 +28,7 @@ selectL = ParSelec { ptype = lepton, ptcut = 25, etacut = 2.4 }
 
 basicCutFor :: ParSelec -> Particle -> Bool
 basicCutFor ParSelec {..} p
-    | p `is` ptype = transMomentum [p] > ptcut && (abs . rapidity) p < etacut
+    | p `is` ptype = pt p > ptcut && (abs . eta) p < etacut
     | otherwise    = False
 
 particlesFromTop :: EventEntry -> ParticlePairs
@@ -44,8 +43,8 @@ particlesOfAllBL pm = let !fstates = runReader finalStates pm
                       in if (length leps /= 1) || (length bs < 3)
                          then []
                          else [ [lep,b] | lep <- leps, b <- bs,
-                                          invMass [lep,b] < 160 &&
-                                          fromMaybe (-1) (dR [lep,b]) > 0.4 ]
+                                          invariantMass [lep, b] < 160 &&
+                                          deltaR lep b > 0.4 ]
 
 containsBL :: [Particle] -> Bool
 containsBL ps = let (totnb, totnl) = counter ps
@@ -54,4 +53,4 @@ containsBL ps = let (totnb, totnl) = counter ps
           counter = foldr (\p (nb, nl) ->
                                if | p `is` bQuark -> (nb+1, nl  )
                                   | p `is` lepton -> (nb  , nl+1)
-                                  | otherwise         -> (nb  , nl  )) (0, 0)
+                                  | otherwise     -> (nb  , nl  )) (0, 0)

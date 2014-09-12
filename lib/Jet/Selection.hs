@@ -4,7 +4,6 @@ module Jet.Selection where
 
 import           Control.Monad              (liftM)
 import           Control.Monad.Trans.Reader
-import           Data.Maybe                 (fromJust)
 
 import           Object.Particles
 
@@ -27,8 +26,7 @@ selectT = selectPars tau (PtEtaCut 20 2.5)
 selectPars :: ParticleType -> PtEtaCut -> Reader EventEntry [Particle]
 selectPars ptype cut = liftM (filter (\p -> (p `is` ptype) &&
                                             ptEtaCutFor p cut)) finalStates
-    where ptEtaCutFor p PtEtaCut { .. } =
-              transMomentumOne p > ptcut && (abs . rapidity) p < etacut
+    where ptEtaCutFor p PtEtaCut { .. } = pt p > ptcut && (abs . eta) p < etacut
 
 selectM :: Reader EventEntry Particle
 selectM = liftM (head . filter (`is` invisible)) finalStates
@@ -53,4 +51,4 @@ lepJetIsol :: [Particle] -- ^ Jets
            -> [Particle]
 lepJetIsol jets leps | null jets = leps
                      | otherwise = filter (`isolated` jets) leps
-                     where isolated l = all (\j -> fromJust (dR [l,j]) > 0.4)
+                     where isolated l = all (\j -> deltaR l j > 0.4)
