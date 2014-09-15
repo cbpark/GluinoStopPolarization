@@ -9,12 +9,10 @@ import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString, pack)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
-import           Data.Function                     (on)
 import           Data.Map                          (Map, fromList, maxView)
 import           Data.Maybe                        (fromMaybe)
 
 import           HEP.Data.LHEF
-import           HEP.Vector.LorentzVector          (transverseMass)
 
 import           Jet.Selection                     (finalObjs)
 import           Object.Particles                  (ParObjs (..))
@@ -57,7 +55,9 @@ hTinc ParObjs { .. } =
 transMassLep :: ParObjs -> Maybe Double
 transMassLep ParObjs { .. }
     | null isoLep = Nothing
-    | otherwise   = Just $ transMassOne (head isoLep) missingPt
+    | otherwise   = Just $ transverseMass (head isoLep) (setXYM kx ky 0)
+  where kx = let (x, _, _, _, _) = pup missingPt in x
+        ky = let (_, y, _, _, _) = pup missingPt in y
 
 mBL :: ParObjs -> Double
 mBL ParObjs { .. } =
@@ -74,6 +74,3 @@ eRatioBL ParObjs { .. } =
                                | b <- bjet, l <- isoLep, invariantMass [b,l] < 165] of
       Just (er, _) -> er
       _            -> -1
-
-transMassOne :: Particle -> Particle -> Double
-transMassOne = transverseMass `on` fourMomentum
