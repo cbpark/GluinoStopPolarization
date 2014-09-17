@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE MultiWayIf      #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -11,6 +10,9 @@ module Parton.Selection
 
 import           Control.Applicative
 import           Control.Monad.Trans.Reader
+import qualified Data.Foldable              as F
+import           Data.Sequence              (Seq)
+import qualified Data.Sequence              as S
 
 import           HEP.Data.LHEF
 
@@ -34,23 +36,23 @@ basicCutFor ParSelec {..} p
 particlesFromTop :: EventEntry -> ParticlePairs
 particlesFromTop pm =
     let ps = runReader (particlesFrom topQuark) pm
-    in map (filter ((||) <$> basicCutFor selectB <*> basicCutFor selectL)) ps
+    in map (S.filter ((||) <$> basicCutFor selectB <*> basicCutFor selectL)) ps
 
 particlesOfAllBL :: EventEntry -> ParticlePairs
-particlesOfAllBL pm = let !fstates = runReader finalStates pm
-                          !leps = filter (basicCutFor selectL) fstates
-                          !bs = filter (basicCutFor selectB) fstates
-                      in if (length leps /= 1) || (length bs < 3)
+particlesOfAllBL pm = let fstates = runReader finalStates pm
+                          leps = filter (basicCutFor selectL) fstates
+                          bs = filter (basicCutFor selectB) fstates
+                      in if null leps || null bs
                          then []
-                         else [ [lep,b] | lep <- leps, b <- bs,
-                                          invariantMass [lep, b] < 160 &&
-                                          deltaR lep b > 0.4 ]
+                         else [S.fromList [lep,b] | lep <- leps, b <- bs,
+                               invariantMass [lep, b] < 165 &&
+                               deltaR lep b > 0.4 ]
 
-containsBL :: [Particle] -> Bool
+containsBL :: Seq Particle -> Bool
 containsBL ps = let (totnb, totnl) = counter ps
                 in (totnb == 1) && (totnl == 1)
-    where counter :: [Particle] -> (Int, Int)
-          counter = foldr (\p (nb, nl) ->
-                               if | p `is` bQuark -> (nb+1, nl  )
-                                  | p `is` lepton -> (nb  , nl+1)
-                                  | otherwise     -> (nb  , nl  )) (0, 0)
+    where counter :: Seq Particle -> (Int, Int)
+          counter = F.foldr (\p (nb, nl) -> if | p `is` bQuark -> (nb+1, nl  )
+                                               | p `is` lepton -> (nb  , nl+1)
+                                               | otherwise     -> (nb  , nl  ))
+                    (0, 0)

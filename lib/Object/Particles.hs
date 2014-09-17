@@ -3,6 +3,7 @@ module Object.Particles
       ParObjs (..)
     , ParticlePairs
 
+    , topSquark
     , topQuark
     , bQuark
     , quarkJet
@@ -10,6 +11,8 @@ module Object.Particles
     , tau
     , invisible
     ) where
+
+import           Data.Sequence (Seq)
 
 import           HEP.Data.LHEF
 
@@ -20,7 +23,10 @@ data ParObjs = ParObjs { isoLep    :: [Particle]
                        , missingPt :: Particle
                        }
 
-type ParticlePairs = [[Particle]]
+type ParticlePairs = [Seq Particle]
+
+topSquark :: ParticleType
+topSquark = ParticleType [1000006]
 
 topQuark :: ParticleType
 topQuark = ParticleType [6]
@@ -38,4 +44,4 @@ tau :: ParticleType
 tau = ParticleType [15]
 
 invisible :: ParticleType
-invisible = ParticleType [12,14,1000024]
+invisible = ParticleType [12,14,1000022,1000024]

@@ -32,15 +32,18 @@ module Parton.Variables
     , missingET
     ) where
 
+import           Control.Monad                     (liftM)
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Data.ByteString.Char8             (ByteString)
 import qualified Data.ByteString.Lazy.Char8        as C
 import           Data.Double.Conversion.ByteString (toFixed)
-import           Data.List                         (find)
+import qualified Data.Foldable                     as F
 import           Data.Map                          (Map)
 import qualified Data.Map                          as M
 import           Data.Maybe                        (mapMaybe)
+import           Data.Sequence                     (Seq)
+import qualified Data.Sequence                     as S
 
 import           HEP.Data.LHEF
 
@@ -116,7 +119,7 @@ eRatioBLpair getPair = do
   return $ toFixed 3 e
 
 eRatioBL :: ParticlePairs -> [Double]
-eRatioBL = mapMaybe (runReaderT eRatioBL') . filter containsBL
+eRatioBL = mapMaybe (runReaderT eRatioBL' . F.toList) . filter containsBL
     where
       eRatioBL' :: ReaderT [Particle] Maybe Double
       eRatioBL' = do eLepton <- theEnergyOf lepton
@@ -125,7 +128,7 @@ eRatioBL = mapMaybe (runReaderT eRatioBL') . filter containsBL
 
       theEnergyOf :: ParticleType -> ReaderT [Particle] Maybe Double
       theEnergyOf par = do ps <- ask
-                           case find (`is` par) ps of
+                           case F.find (`is` par) ps of
                              Just p  -> return (energyOf p)
                              _       -> lift Nothing
 
@@ -146,11 +149,11 @@ pairByR = pairBy (HowPair dR ByMin)
 
 pairBy :: HowPair -> EventEntry -> ParticlePairs
 pairBy (HowPair func choice) pm =
-    let allpairs = particlesOfAllBL pm
+    let allpairs = (map F.toList . particlesOfAllBL) pm
         pairMap = foldr (\p m -> M.insert (func p) p m) M.empty allpairs
         chosenPair = (\case ByMax -> M.maxView pairMap
                             _     -> M.minView pairMap) choice
-    in case chosenPair of Just (pair, _) -> [pair]
+    in case chosenPair of Just (pair, _) -> [S.fromList pair]
                           _              -> []
 
 mBLTrue :: EventEntry -> ByteString
@@ -166,28 +169,25 @@ pTAll :: EventEntry -> [ByteString]
 pTAll = runReader $ calcVar 2 particlesOfAllBL (Just . ptVectorSum)
 
 cosThetaTrue :: EventEntry -> ByteString
-cosThetaTrue = headOf . runReader (calcVar 3 particlesFromTop cosTh)
+cosThetaTrue = headOf . runReader (calcVar 3 particlesFromTop (cosTh . F.toList))
 
 cosThetaAll :: EventEntry -> [ByteString]
-cosThetaAll = runReader $ calcVar 3 particlesOfAllBL cosTh
+cosThetaAll = runReader $ calcVar 3 particlesOfAllBL (cosTh . F.toList)
 
 deltaRTrue :: EventEntry -> ByteString
-deltaRTrue = headOf . runReader (calcVar 3 particlesFromTop dR)
+deltaRTrue = headOf . runReader (calcVar 3 particlesFromTop (dR . F.toList))
 
 deltaRAll :: EventEntry -> [ByteString]
-deltaRAll = runReader $ calcVar 3 particlesOfAllBL dR
+deltaRAll = runReader $ calcVar 3 particlesOfAllBL (dR . F.toList)
 
-calcVar :: Int -> (EventEntry -> ParticlePairs) -> ([Particle] -> Maybe Double)
+calcVar :: Int -> (EventEntry -> ParticlePairs) -> (Seq Particle -> Maybe Double)
            -> Reader EventEntry [ByteString]
-calcVar n mkpair func = do
-  pm <- ask
-  return $ map (toFixed n) $ runReader (calcVar' func) pm
-    where
-      calcVar' :: ([Particle] -> Maybe Double) -> Reader EventEntry [Double]
-      calcVar' f = do
-        pm' <- ask
-        let pss = filter containsBL (mkpair pm')
-        return $ mapMaybe f pss
+calcVar n mkpair func = liftM (map (toFixed n) . runReader (calcVar' func)) ask
+    where calcVar' :: (Seq Particle -> Maybe Double) -> Reader EventEntry [Double]
+          calcVar' f = do
+            pm' <- ask
+            let pss = filter containsBL (mkpair pm')
+            return $ mapMaybe f (F.toList pss)
 
 missingET :: EventEntry -> ByteString
 missingET = toFixed 2 . ptVectorSum . filter (`is` invisible) . runReader finalStates

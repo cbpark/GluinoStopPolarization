@@ -21,12 +21,12 @@ type JetLevelResult = Map C.ByteString ByteString
 
 calcVar :: Reader EventEntry JetLevelResult
 calcVar = do
-  !fobj <- finalObjs
-  let !alljet = (++) <$> jet <*> bjet $ fobj
+  fobj <- finalObjs
+  let alljet = (++) <$> jet <*> bjet $ fobj
       (nl, nb, ntau) = (,,) <$>
                        length . isoLep <*> length . bjet <*> length . taujet $
                        fobj
-      nj = length . filter (\p -> pt p > 30) $ alljet
+      nj = length . filter (\p -> pt p > 30) $! alljet
       met = pt (missingPt fobj)
       hT = hTinc fobj
       meff = met + hT
