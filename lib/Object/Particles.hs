@@ -12,8 +12,6 @@ module Object.Particles
     , invisible
     ) where
 
-import           Data.Sequence (Seq)
-
 import           HEP.Data.LHEF
 
 data ParObjs = ParObjs { isoLep    :: [Particle]
@@ -23,7 +21,7 @@ data ParObjs = ParObjs { isoLep    :: [Particle]
                        , missingPt :: Particle
                        }
 
-type ParticlePairs = [Seq Particle]
+type ParticlePairs = [[Particle]]
 
 topSquark :: ParticleType
 topSquark = ParticleType [1000006]

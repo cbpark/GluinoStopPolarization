@@ -42,8 +42,6 @@ import qualified Data.Foldable                     as F
 import           Data.Map                          (Map)
 import qualified Data.Map                          as M
 import           Data.Maybe                        (mapMaybe)
-import           Data.Sequence                     (Seq)
-import qualified Data.Sequence                     as S
 
 import           HEP.Data.LHEF
 
@@ -153,7 +151,7 @@ pairBy (HowPair func choice) pm =
         pairMap = foldr (\p m -> M.insert (func p) p m) M.empty allpairs
         chosenPair = (\case ByMax -> M.maxView pairMap
                             _     -> M.minView pairMap) choice
-    in case chosenPair of Just (pair, _) -> [S.fromList pair]
+    in case chosenPair of Just (pair, _) -> [pair]
                           _              -> []
 
 mBLTrue :: EventEntry -> ByteString
@@ -180,10 +178,10 @@ deltaRTrue = headOf . runReader (calcVar 3 particlesFromTop (dR . F.toList))
 deltaRAll :: EventEntry -> [ByteString]
 deltaRAll = runReader $ calcVar 3 particlesOfAllBL (dR . F.toList)
 
-calcVar :: Int -> (EventEntry -> ParticlePairs) -> (Seq Particle -> Maybe Double)
+calcVar :: Int -> (EventEntry -> ParticlePairs) -> ([Particle] -> Maybe Double)
            -> Reader EventEntry [ByteString]
 calcVar n mkpair func = liftM (map (toFixed n) . runReader (calcVar' func)) ask
-    where calcVar' :: (Seq Particle -> Maybe Double) -> Reader EventEntry [Double]
+    where calcVar' :: ([Particle] -> Maybe Double) -> Reader EventEntry [Double]
           calcVar' f = do
             pm' <- ask
             let pss = filter containsBL (mkpair pm')
