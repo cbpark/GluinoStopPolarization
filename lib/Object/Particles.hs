@@ -12,7 +12,7 @@ module Object.Particles
     , invisible
     ) where
 
-import           HEP.Data.LHEF
+import           HEP.Data.LHEF hiding (tau)
 
 data ParObjs = ParObjs { isoLep    :: [Particle]
                        , taujet    :: [Particle]

@@ -10,3 +10,4 @@ cabal.sandbox.config
 *.dat
 *.eps
 *.pdf
+.stack-work

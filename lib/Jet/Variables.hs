@@ -55,7 +55,7 @@ hTinc ParObjs { .. } =
 transMassLep :: ParObjs -> Maybe Double
 transMassLep ParObjs { .. }
     | null isoLep = Nothing
-    | otherwise   = Just $ transverseMass (head isoLep) (setXYM kx ky 0)
+    | otherwise   = Just $ transverseMass [head isoLep] (setXYM kx ky 0)
   where kx = let (x, _, _, _, _) = pup missingPt in x
         ky = let (_, y, _, _, _) = pup missingPt in y
 

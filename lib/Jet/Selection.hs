@@ -7,7 +7,7 @@ import           Control.Monad.Trans.Reader
 
 import           Object.Particles
 
-import           HEP.Data.LHEF
+import           HEP.Data.LHEF              hiding (tau, taus)
 
 data PtEtaCut = PtEtaCut { ptcut :: Double, etacut :: Double }
 
